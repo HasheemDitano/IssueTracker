@@ -1,0 +1,31 @@
+﻿@model List<IssueTracker.Models.Issue>
+
+<h1>Issues</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var issue in Model)
+        {
+            <tr>
+                <td>@issue.Title</td>
+                <td>@issue.Description</td>
+                <td>@issue.Status</td>
+                <td>@issue.CreatedAt</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@issue.Id">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@issue.Id">Delete</a>
+                </td>
+            </tr>
+
+        }
+    </tbody>
+</table>
