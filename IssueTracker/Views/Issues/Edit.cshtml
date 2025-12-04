@@ -11,10 +11,13 @@
         <input asp-for="Title" class="form-control" />
         <span asp-validation-for="Title" class="text-danger"></span>
     </div>
+
     <div class="form-group">
         <label asp-for="Description"></label>
         <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
     </div>
+
     <div class="form-group">
         <label asp-for="Status"></label>
         <select asp-for="Status" class="form-control">
@@ -24,7 +27,26 @@
             <option>Resolved</option>
             <option>Closed</option>
         </select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Priority"></label>
+        <select asp-for="Priority" class="form-control">
+            <option value="1">1 - Highest</option>
+            <option value="2">2</option>
+            <option value="3">3 - Normal</option>
+            <option value="4">4</option>
+            <option value="5">5 - Lowest</option>
+        </select>
+        <span asp-validation-for="Priority" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-primary">Save</button>
 </form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

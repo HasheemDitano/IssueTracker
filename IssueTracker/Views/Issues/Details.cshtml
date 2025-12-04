@@ -1,0 +1,52 @@
+﻿@model IssueTracker.Models.Issue
+
+@{
+    var comments = ViewBag.Comments as List<IssueTracker.Models.Comment> ?? new List<IssueTracker.Models.Comment>();
+}
+
+<h1>Issue Details</h1>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h3>@Model.Title</h3>
+
+        <p><strong>Description:</strong> @Model.Description</p>
+        <p><strong>Status:</strong> @Model.Status</p>
+        <p><strong>Priority:</strong> @Model.Priority</p>
+        <p><strong>Created:</strong> @Model.CreatedAt</p>
+    </div>
+</div>
+
+<h3>Comments</h3>
+
+@if (comments.Any())
+{
+    <ul class="list-group mb-3">
+        @foreach (var c in comments)
+        {
+            <li class="list-group-item">
+                <div>@c.Text</div>
+                <small class="text-muted">@c.CreatedAt</small>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p class="text-muted">No comments yet.</p>
+}
+
+<h4>Add a comment</h4>
+
+<form asp-action="PostComment" method="post">
+    <input type="hidden" name="issueId" value="@Model.Id" />
+    <div class="form-group">
+        <textarea name="text" class="form-control" rows="3" placeholder="Write a comment..."></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
+</form>
+
+<p class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Index">Back to list</a>
+</p>

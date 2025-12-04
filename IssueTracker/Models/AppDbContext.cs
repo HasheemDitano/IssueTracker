@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using IssueTracker.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace IssueTracker.Models
+namespace IssueTracker.Data
 {
     public class AppDbContext : DbContext
     {
@@ -9,6 +10,19 @@ namespace IssueTracker.Models
         {
         }
 
-        public DbSet<Issue> Issues { get; set; } = null!;
+        public DbSet<Issue> Issues { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // One Issue has many Comments; a Comment belongs to one Issue
+            modelBuilder.Entity<Comment>()
+                .HasOne<Issue>()                     // principal
+                .WithMany()                          // many comments
+                .HasForeignKey(c => c.IssueId)       // FK property
+                .OnDelete(DeleteBehavior.Cascade);   // delete comments when issue is deleted
+        }
     }
 }

@@ -1,6 +1,154 @@
 ﻿@model List<IssueTracker.Models.Issue>
 
-<h1>Issues</h1>
+@using System.Linq
+
+<h1 class="mb-3">Issue Analytics</h1>
+
+@{
+    var total = Model.Count;
+    var openCount = Model.Count(i => i.Status == "Open");
+    var inProgressCount = Model.Count(i => i.Status == "In Progress");
+    var waitingCount = Model.Count(i => i.Status == "Waiting for User");
+    var resolvedCount = Model.Count(i => i.Status == "Resolved");
+    var closedCount = Model.Count(i => i.Status == "Closed");
+    var resolvedClosed = resolvedCount + closedCount;
+
+    int high = Model.Count(i => i.Priority == 1);
+    int normal = Model.Count(i => i.Priority == 3);
+    int low = Model.Count(i => i.Priority >= 4);
+
+    var recentIssues = Model
+        .OrderByDescending(i => i.CreatedAt)
+        .Take(5)
+        .ToList();
+}
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase mb-1">Total Issues</h6>
+                <h3 class="mb-0">@total</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase mb-1">Open</h6>
+                <h3 class="mb-0">@openCount</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase mb-1">In Progress</h6>
+                <h3 class="mb-0">@inProgressCount</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase mb-1">Resolved + Closed</h6>
+                <h3 class="mb-0">@resolvedClosed</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                Recent Issues
+            </div>
+            <div class="card-body p-0">
+                @if (!recentIssues.Any())
+                {
+                    <p class="p-3 mb-0 text-muted">No issues yet.</p>
+                }
+                else
+                {
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var issue in recentIssues)
+                        {
+                            <tr>
+                                <td>@issue.Title</td>
+                                <td>@issue.Status</td>
+                                <td>@issue.Priority</td>
+                                <td>@issue.CreatedAt</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                By Priority
+            </div>
+            <div class="card-body">
+                <p class="mb-1"><strong>High (1)</strong>: @high</p>
+                <div class="progress mb-2">
+                    <div class="progress-bar bg-danger" role="progressbar"
+                         style="width:@(total == 0 ? 0 : high * 100 / total)%"></div>
+                </div>
+
+                <p class="mb-1"><strong>Normal (3)</strong>: @normal</p>
+                <div class="progress mb-2">
+                    <div class="progress-bar bg-warning" role="progressbar"
+                         style="width:@(total == 0 ? 0 : normal * 100 / total)%"></div>
+                </div>
+
+                <p class="mb-1"><strong>Low (4–5)</strong>: @low</p>
+                <div class="progress">
+                    <div class="progress-bar bg-success" role="progressbar"
+                         style="width:@(total == 0 ? 0 : low * 100 / total)%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Index" method="get" class="mb-3">
+    <label for="status">Filter by status:</label>
+    <select id="status" name="status"
+            class="form-control"
+            style="max-width:200px; display:inline-block; margin-right:10px;"
+            onchange="this.form.submit()">
+        <option value="">All</option>
+        <option value="Open" selected="@(ViewBag.CurrentStatus == "Open" ? "selected" : "")">Open</option>
+        <option value="In Progress" selected="@(ViewBag.CurrentStatus == "In Progress" ? "selected" : "")">In Progress</option>
+        <option value="Waiting for User" selected="@(ViewBag.CurrentStatus == "Waiting for User" ? "selected" : "")">Waiting for User</option>
+        <option value="Resolved" selected="@(ViewBag.CurrentStatus == "Resolved" ? "selected" : "")">Resolved</option>
+        <option value="Closed" selected="@(ViewBag.CurrentStatus == "Closed" ? "selected" : "")">Closed</option>
+    </select>
+
+
+    <input type="text"
+           name="search"
+           placeholder="Search title..."
+           value="@(ViewBag.CurrentSearch ?? "")"
+           class="form-control"
+           style="max-width:250px; display:inline-block; margin-left:10px; margin-right:10px;" />
+
+    <button type="submit" class="btn btn-secondary">Search</button>
+</form>
 
 <table class="table">
     <thead>
@@ -8,6 +156,7 @@
             <th>Title</th>
             <th>Description</th>
             <th>Status</th>
+            <th>Priority</th>
             <th>Created</th>
             <th>Actions</th>
         </tr>
@@ -19,13 +168,14 @@
                 <td>@issue.Title</td>
                 <td>@issue.Description</td>
                 <td>@issue.Status</td>
+                <td>@issue.Priority</td>
                 <td>@issue.CreatedAt</td>
                 <td>
+                    <a asp-action="Details" asp-route-id="@issue.Id">View</a> |
                     <a asp-action="Edit" asp-route-id="@issue.Id">Edit</a> |
                     <a asp-action="Delete" asp-route-id="@issue.Id">Delete</a>
                 </td>
             </tr>
-
         }
     </tbody>
 </table>

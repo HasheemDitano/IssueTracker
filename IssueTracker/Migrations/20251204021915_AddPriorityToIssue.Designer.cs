@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IssueTracker.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251203072911_InitIssues")]
-    partial class InitIssues
+    [Migration("20251204021915_AddPriorityToIssue")]
+    partial class AddPriorityToIssue
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,6 +39,9 @@ namespace IssueTracker.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()

@@ -1,8 +1,54 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 style="font-weight: 700; color: #212529; margin-bottom: 0;">Dashboard</h1>
+        <a href="@Url.Action("Create", "Issues")" class="btn btn-primary">+ New Issue</a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted text-uppercase mb-1">Total Issues</p>
+                    <h3 class="mb-0">@ViewBag.TotalIssues</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted text-uppercase mb-1">Open</p>
+                    <h3 class="mb-0">@ViewBag.OpenIssues</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted text-uppercase mb-1">In Progress</p>
+                    <h3 class="mb-0">@ViewBag.InProgressIssues</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted text-uppercase mb-1">Resolved + Closed</p>
+                    <h3 class="mb-0">@ViewBag.ResolvedClosedIssues</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            Recent Issues
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-0">We’ll show recent issues here later.</p>
+        </div>
+    </div>
 </div>

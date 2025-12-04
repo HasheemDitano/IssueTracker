@@ -1,11 +1,28 @@
-﻿    namespace IssueTracker.Models
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace IssueTracker.Models
+{
+    public class Issue
     {
-        public class Issue
-        {
-            public int Id { get; set; }
-            public string Title { get; set; } = "";
-            public string Description { get; set; } = "";
-            public string Status { get; set; } = "Open"; // Open/InProgress/Resolved
-            public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        }
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string Title { get; set; } = "";
+
+        [StringLength(1000)]
+        public string Description { get; set; } = "";
+
+        [Required]
+        public string Status { get; set; } = "Open"; // Open / In Progress / Waiting for User / Resolved / Closed
+
+        [Range(1, 5)]
+        public int Priority { get; set; } = 3; // 1 = Highest, 5 = Lowest
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // who created this issue (Identity user Id)
+        public string? CreatedByUserId { get; set; }
     }
+}

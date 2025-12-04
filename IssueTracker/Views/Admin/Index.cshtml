@@ -1,0 +1,60 @@
+﻿@model List<(Microsoft.AspNetCore.Identity.IdentityUser User, System.Collections.Generic.IList<string> Roles)>
+
+<h1>User Management</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Roles</th>
+            <th>Make Customer</th>
+            <th>Make Engineer</th>
+            <th>Make Admin</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.User.Email</td>
+                <td>@string.Join(", ", item.Roles)</td>
+                <td>
+                    <form asp-action="AddRole" method="post" style="display:inline">
+                        <input type="hidden" name="userId" value="@item.User.Id" />
+                        <input type="hidden" name="role" value="Customer" />
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Add</button>
+                    </form>
+                    <form asp-action="RemoveRole" method="post" style="display:inline">
+                        <input type="hidden" name="userId" value="@item.User.Id" />
+                        <input type="hidden" name="role" value="Customer" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                    </form>
+                </td>
+                <td>
+                    <form asp-action="AddRole" method="post" style="display:inline">
+                        <input type="hidden" name="userId" value="@item.User.Id" />
+                        <input type="hidden" name="role" value="Engineer" />
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Add</button>
+                    </form>
+                    <form asp-action="RemoveRole" method="post" style="display:inline">
+                        <input type="hidden" name="userId" value="@item.User.Id" />
+                        <input type="hidden" name="role" value="Engineer" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                    </form>
+                </td>
+                <td>
+                    <form asp-action="AddRole" method="post" style="display:inline">
+                        <input type="hidden" name="userId" value="@item.User.Id" />
+                        <input type="hidden" name="role" value="Admin" />
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Add</button>
+                    </form>
+                    <form asp-action="RemoveRole" method="post" style="display:inline">
+                        <input type="hidden" name="userId" value="@item.User.Id" />
+                        <input type="hidden" name="role" value="Admin" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
