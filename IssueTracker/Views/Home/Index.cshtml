@@ -3,52 +3,105 @@
 }
 
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 style="font-weight: 700; color: #212529; margin-bottom: 0;">Dashboard</h1>
-        <a href="@Url.Action("Create", "Issues")" class="btn btn-primary">+ New Issue</a>
+<div class="d-flex justify-content-between align-items-start mb-5 fade-in-up">
+    <div>
+        <h1 class="mb-3 d-flex align-items-center">
+            <i data-lucide="layout-dashboard" class="me-3" style="width: 32px; height: 32px;"></i>Dashboard
+        </h1>
+        <p class="text-muted lead mb-0">Monitor and manage your issues efficiently</p>
     </div>
+    <a href="@Url.Action("Create", "Issues")" class="btn btn-primary btn-lg">
+        <i data-lucide="plus" class="me-2" style="width: 18px; height: 18px;"></i>New Issue
+    </a>
+</div>
 
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <p class="text-muted text-uppercase mb-1">Total Issues</p>
-                    <h3 class="mb-0">@ViewBag.TotalIssues</h3>
-                </div>
+<div class="row mb-5">
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stats-card slide-in" style="animation-delay: 0.1s;">
+            <div class="stats-icon">
+                <i data-lucide="clipboard-list" style="width: 24px; height: 24px; color: var(--primary-500);"></i>
             </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <p class="text-muted text-uppercase mb-1">Open</p>
-                    <h3 class="mb-0">@ViewBag.OpenIssues</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <p class="text-muted text-uppercase mb-1">In Progress</p>
-                    <h3 class="mb-0">@ViewBag.InProgressIssues</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <p class="text-muted text-uppercase mb-1">Resolved + Closed</p>
-                    <h3 class="mb-0">@ViewBag.ResolvedClosedIssues</h3>
-                </div>
-            </div>
+            <p class="text-muted">Total Issues</p>
+            <h3 class="mb-0">@ViewBag.TotalIssues</h3>
         </div>
     </div>
-
-    <div class="card shadow-sm">
-        <div class="card-header">
-            Recent Issues
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stats-card slide-in" style="animation-delay: 0.2s;">
+            <div class="stats-icon">
+                <i data-lucide="folder-open" style="width: 24px; height: 24px; color: var(--warning-500);"></i>
+            </div>
+            <p class="text-muted">Open</p>
+            <h3 class="mb-0">@ViewBag.OpenIssues</h3>
         </div>
-        <div class="card-body">
-            <p class="text-muted mb-0">We’ll show recent issues here later.</p>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stats-card slide-in" style="animation-delay: 0.3s;">
+            <div class="stats-icon">
+                <i data-lucide="clock" style="width: 24px; height: 24px; color: var(--info-500);"></i>
+            </div>
+            <p class="text-muted">In Progress</p>
+            <h3 class="mb-0">@ViewBag.InProgressIssues</h3>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="stats-card slide-in" style="animation-delay: 0.4s;">
+            <div class="stats-icon">
+                <i data-lucide="check-circle" style="width: 24px; height: 24px; color: var(--success-500);"></i>
+            </div>
+            <p class="text-muted">Resolved + Closed</p>
+            <h3 class="mb-0">@ViewBag.ResolvedClosedIssues</h3>
         </div>
     </div>
 </div>
+
+    <div class="card fade-in-up" style="animation-delay: 0.5s;">
+        <div class="card-header d-flex align-items-center">
+            <i data-lucide="clock" class="me-2" style="width: 18px; height: 18px;"></i>
+            <span>Recent Issues</span>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.RecentIssues == null || ViewBag.RecentIssues.Count == 0)
+            {
+                <div class="empty-state">
+                    <i data-lucide="inbox" style="width: 48px; height: 48px;"></i>
+                    <h3>No issues yet</h3>
+                    <p>Create your first issue to get started!</p>
+                </div>
+            }
+            else
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var issue in ViewBag.RecentIssues)
+                    {
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i data-lucide="bug" style="width: 16px; height: 16px; color: var(--primary-500);"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">@issue.Title</h6>
+                                    <small class="text-muted d-flex align-items-center gap-2">
+                                        <span class="badge bg-secondary">@issue.Status</span>
+                                        <span class="d-flex align-items-center">
+                                            <i data-lucide="calendar" class="me-1" style="width: 12px; height: 12px;"></i>
+                                            @issue.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")
+                                        </span>
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <a href="@Url.Action("Details", "Issues", new { id = issue.Id })" class="btn btn-outline-primary btn-sm">
+                                    <i data-lucide="eye" class="me-1" style="width: 14px; height: 14px;"></i>View
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+                    <a href="@Url.Action("Index", "Issues")" class="btn btn-outline-primary">
+                        <i data-lucide="list" class="me-2" style="width: 16px; height: 16px;"></i>View All Issues
+                    </a>
+                </div>
+            }
+        </div>
+    </div>

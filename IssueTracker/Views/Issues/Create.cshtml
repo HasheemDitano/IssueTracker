@@ -1,34 +1,84 @@
 ﻿@model IssueTracker.Models.Issue
 
-<h1>Create Issue</h1>
-
-<form asp-action="Create" method="post">
-    <div class="form-group">
-        <label asp-for="Title"></label>
-        <input asp-for="Title" class="form-control" />
-        <span asp-validation-for="Title" class="text-danger"></span>
+<div class="d-flex justify-content-between align-items-start mb-5 fade-in-up">
+    <div>
+        <h1 class="mb-3 d-flex align-items-center">
+            <i data-lucide="plus-circle" class="me-3" style="width: 32px; height: 32px;"></i>Create New Issue
+        </h1>
+        <p class="text-muted lead mb-0">Report a new issue to track and resolve</p>
     </div>
+    <a href="@Url.Action("Index", "Issues")" class="btn btn-outline-secondary">
+        <i data-lucide="arrow-left" class="me-2" style="width: 16px; height: 16px;"></i>Back to Issues
+    </a>
+</div>
 
-    <div class="form-group">
-        <label asp-for="Description"></label>
-        <textarea asp-for="Description" class="form-control"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card fade-in-up" style="animation-delay: 0.2s;">
+            <div class="card-header d-flex align-items-center">
+                <i data-lucide="edit" class="me-2" style="width: 18px; height: 18px;"></i>
+                <span>Issue Information</span>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <label asp-for="Title" class="form-label fw-semibold">
+                                <i data-lucide="tag" class="me-2" style="width: 16px; height: 16px;"></i>Issue Title
+                            </label>
+                            <input asp-for="Title" class="form-control" placeholder="Enter a descriptive title for the issue..." />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                            <div class="form-text">
+                                <i data-lucide="info" class="me-1" style="width: 12px; height: 12px;"></i>Provide a clear and concise title that describes the issue
+                            </div>
+                        </div>
+
+                        <div class="col-12 mb-4">
+                            <label asp-for="Description" class="form-label fw-semibold">
+                                <i data-lucide="file-text" class="me-2" style="width: 16px; height: 16px;"></i>Description
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="6" 
+                                      placeholder="Describe the issue in detail, including steps to reproduce, expected behavior, and actual behavior..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                            <div class="form-text">
+                                <i data-lucide="info" class="me-1" style="width: 12px; height: 12px;"></i>Include detailed information to help understand and resolve the issue
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Priority" class="form-label fw-semibold">
+                                <i data-lucide="alert-triangle" class="me-2" style="width: 16px; height: 16px;"></i>Priority Level
+                            </label>
+                            <select asp-for="Priority" class="form-select">
+                                <option value="">Select Priority</option>
+                                <option value="1">🔥 Critical (1) - System Down</option>
+                                <option value="2">⚠️ High (2) - Major Issue</option>
+                                <option value="3" selected>📋 Normal (3) - Standard Issue</option>
+                                <option value="4">📝 Low (4) - Minor Issue</option>
+                                <option value="5">💭 Lowest (5) - Enhancement</option>
+                            </select>
+                            <span asp-validation-for="Priority" class="text-danger"></span>
+                            <div class="form-text">
+                                <i data-lucide="info" class="me-1" style="width: 12px; height: 12px;"></i>Select the appropriate priority based on urgency and impact
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <a href="@Url.Action("Index", "Issues")" class="btn btn-outline-secondary">
+                            <i data-lucide="x" class="me-2" style="width: 16px; height: 16px;"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i data-lucide="plus" class="me-2" style="width: 18px; height: 18px;"></i>Create Issue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label asp-for="Priority"></label>
-        <select asp-for="Priority" class="form-control">
-            <option value="1">1 - Highest</option>
-            <option value="2">2</option>
-            <option value="3">3 - Normal</option>
-            <option value="4">4</option>
-            <option value="5">5 - Lowest</option>
-        </select>
-        <span asp-validation-for="Priority" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Create</button>
-</form>
+</div>
 
 @section Scripts {
     @{
