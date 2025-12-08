@@ -1,6 +1,7 @@
 ﻿using IssueTracker.Data;
 using IssueTracker.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -82,6 +83,304 @@ namespace IssueTracker.Controllers
             return View(issues);
         }
 
-        // the rest of the controller (Details, PostComment, Create, Edit, Delete) stays as we already set up
+        // GET: /Issues/Create - Only Customers can create issues
+        [Authorize(Roles = "Customer")]
+        public IActionResult Create()
+        {            
+            return View();
+        }
+
+        // POST: /Issues/Create - Only Customers can create issues
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Customer")]
+        public IActionResult Create(Issue issue)
+        {
+            if (ModelState.IsValid)
+            {
+                // Set the user who created the issue
+                issue.CreatedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                issue.CreatedAt = DateTime.UtcNow;
+
+                _context.Issues.Add(issue);
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = "Issue created successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(issue);
+        }
+
+        // GET: /Issues/Details/5
+        public IActionResult Details(int id)
+        {
+            var issue = _context.Issues.FirstOrDefault(i => i.Id == id);
+            if (issue == null)
+            {
+                return NotFound();
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isEngineerOrAdmin = User.IsInRole("Engineer") || User.IsInRole("Admin");
+
+            // Check if user can view this issue
+            if (!isEngineerOrAdmin && issue.CreatedByUserId != userId)
+            {
+                return Forbid();
+            }
+
+            // Get comments for this issue
+            var comments = _context.Comments
+                .Where(c => c.IssueId == id)
+                .OrderBy(c => c.CreatedAt)
+                .ToList();
+
+            ViewBag.Comments = comments;
+            ViewBag.CanEdit = isEngineerOrAdmin || issue.CreatedByUserId == userId;
+
+            return View(issue);
+        }
+
+        // GET: /Issues/Edit/5
+        public IActionResult Edit(int id)
+        {
+            var issue = _context.Issues.FirstOrDefault(i => i.Id == id);
+            if (issue == null)
+            {
+                return NotFound();
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isEngineerOrAdmin = User.IsInRole("Engineer") || User.IsInRole("Admin");
+
+            // Check if user can edit this issue
+            if (!isEngineerOrAdmin && issue.CreatedByUserId != userId)
+            {
+                return Forbid();
+            }
+
+            return View(issue);
+        }
+
+        // POST: /Issues/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, Issue issue)
+        {
+            if (id != issue.Id)
+            {
+                return NotFound();
+            }
+
+            var existingIssue = _context.Issues.FirstOrDefault(i => i.Id == id);
+            if (existingIssue == null)
+            {
+                return NotFound();
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isEngineerOrAdmin = User.IsInRole("Engineer") || User.IsInRole("Admin");
+
+            // Check if user can edit this issue
+            if (!isEngineerOrAdmin && existingIssue.CreatedByUserId != userId)
+            {
+                return Forbid();
+            }
+
+            if (ModelState.IsValid)
+            {
+                // Update only allowed fields
+                existingIssue.Title = issue.Title;
+                existingIssue.Description = issue.Description;
+                existingIssue.Priority = issue.Priority;
+                
+                // Only Engineers/Admins can change status
+                if (isEngineerOrAdmin)
+                {
+                    existingIssue.Status = issue.Status;
+                }
+
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = "Issue updated successfully!";
+                return RedirectToAction(nameof(Details), new { id = issue.Id });
+            }
+
+            return View(issue);
+        }
+
+        // POST: /Issues/PostComment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult PostComment(int issueId, string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                TempData["ErrorMessage"] = "Comment text is required.";
+                return RedirectToAction(nameof(Details), new { id = issueId });
+            }
+
+            var issue = _context.Issues.FirstOrDefault(i => i.Id == issueId);
+            if (issue == null)
+            {
+                return NotFound();
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isEngineerOrAdmin = User.IsInRole("Engineer") || User.IsInRole("Admin");
+
+            // Check if user can comment on this issue
+            if (!isEngineerOrAdmin && issue.CreatedByUserId != userId)
+            {
+                return Forbid();
+            }
+
+            var comment = new Comment
+            {
+                IssueId = issueId,
+                Text = text,
+                CreatedByUserId = userId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Comments.Add(comment);
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Comment added successfully!";
+            return RedirectToAction(nameof(Details), new { id = issueId });
+        }
+
+        // GET: /Issues/Delete/5
+        [Authorize(Roles = "Admin")]
+        public IActionResult Delete(int id)
+        {
+            var issue = _context.Issues.FirstOrDefault(i => i.Id == id);
+            if (issue == null)
+            {
+                return NotFound();
+            }
+
+            return View(issue);
+        }
+
+        // POST: /Issues/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var issue = _context.Issues.FirstOrDefault(i => i.Id == id);
+            if (issue != null)
+            {
+                // Delete associated comments first
+                var comments = _context.Comments.Where(c => c.IssueId == id);
+                _context.Comments.RemoveRange(comments);
+                
+                _context.Issues.Remove(issue);
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = "Issue deleted successfully!";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: /Issues/AssignedToMe
+        [Authorize(Roles = "Engineer,Admin")]
+        public IActionResult AssignedToMe()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            var assignedIssues = _context.Issues
+                .Where(i => i.AssignedToUserId == userId)
+                .OrderBy(i => i.Priority)
+                .ThenByDescending(i => i.CreatedAt)
+                .ToList();
+
+            ViewBag.PageTitle = "Issues Assigned to Me";
+            ViewBag.IsAssignedView = true;
+
+            return View("Index", assignedIssues);
+        }
+
+        // POST: /Issues/AssignToMe/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Engineer,Admin")]
+        public IActionResult AssignToMe(int id)
+        {
+            var issue = _context.Issues.FirstOrDefault(i => i.Id == id);
+            if (issue == null)
+            {
+                return NotFound();
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            issue.AssignedToUserId = userId;
+
+            // If assigning to self, likely starting work
+            if (issue.Status == "Open")
+            {
+                issue.Status = "In Progress";
+            }
+
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = "Issue assigned to you successfully!";
+
+            return RedirectToAction(nameof(Details), new { id = id });
+        }
+
+        // POST: /Issues/Unassign/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Engineer,Admin")]
+        public IActionResult Unassign(int id)
+        {
+            var issue = _context.Issues.FirstOrDefault(i => i.Id == id);
+            if (issue == null)
+            {
+                return NotFound();
+            }
+
+            issue.AssignedToUserId = null;
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = "Issue unassigned successfully!";
+
+            return RedirectToAction(nameof(Details), new { id = id });
+        }
+
+        // POST: /Issues/CloseIssue/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CloseIssue(int id)
+        {
+            var issue = _context.Issues.FirstOrDefault(i => i.Id == id);
+            if (issue == null)
+            {
+                return NotFound();
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isEngineerOrAdmin = User.IsInRole("Engineer") || User.IsInRole("Admin");
+
+            // Only the creator (customer) or engineers/admins can close an issue
+            if (issue.CreatedByUserId != userId && !isEngineerOrAdmin)
+            {
+                return Forbid();
+            }
+
+            // Only allow closing if issue is Resolved or in certain states
+            if (issue.Status == "Resolved" || issue.Status == "Waiting for User" || isEngineerOrAdmin)
+            {
+                issue.Status = "Closed";
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = "Issue closed successfully!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Issue can only be closed when it's resolved or waiting for user action.";
+            }
+
+            return RedirectToAction(nameof(Details), new { id = id });
+        }
     }
 }

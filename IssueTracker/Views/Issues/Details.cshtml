@@ -1,52 +1,263 @@
 ﻿@model IssueTracker.Models.Issue
+@using System.Security.Claims
 
 @{
     var comments = ViewBag.Comments as List<IssueTracker.Models.Comment> ?? new List<IssueTracker.Models.Comment>();
+    var canEdit = ViewBag.CanEdit as bool? ?? false;
+    var isEngineerOrAdmin = User.IsInRole("Engineer") || User.IsInRole("Admin");
 }
 
-<h1>Issue Details</h1>
-
-<div class="card mb-3">
-    <div class="card-body">
-        <h3>@Model.Title</h3>
-
-        <p><strong>Description:</strong> @Model.Description</p>
-        <p><strong>Status:</strong> @Model.Status</p>
-        <p><strong>Priority:</strong> @Model.Priority</p>
-        <p><strong>Created:</strong> @Model.CreatedAt</p>
+<div class="d-flex justify-content-between align-items-start mb-5 fade-in-up">
+    <div>
+        <h1 class="mb-3 d-flex align-items-center">
+            <i data-lucide="eye" class="me-3" style="width: 32px; height: 32px;"></i>Issue Details
+        </h1>
+        <p class="text-muted lead mb-0">View and manage issue information and comments</p>
+    </div>
+    <div class="d-flex gap-2">
+        @if (canEdit)
+        {
+            <a href="@Url.Action("Edit", "Issues", new { id = Model.Id })" class="btn btn-outline-primary">
+                <i data-lucide="edit" class="me-2" style="width: 16px; height: 16px;"></i>Edit Issue
+            </a>
+        }
+        @if (User.IsInRole("Admin"))
+        {
+            <a href="@Url.Action("Delete", "Issues", new { id = Model.Id })" class="btn btn-outline-danger">
+                <i data-lucide="trash-2" class="me-2" style="width: 16px; height: 16px;"></i>Delete Issue
+            </a>
+        }
+        <a href="@Url.Action("Index", "Issues")" class="btn btn-outline-secondary">
+            <i data-lucide="arrow-left" class="me-2" style="width: 16px; height: 16px;"></i>Back to Issues
+        </a>
     </div>
 </div>
 
-<h3>Comments</h3>
-
-@if (comments.Any())
-{
-    <ul class="list-group mb-3">
-        @foreach (var c in comments)
-        {
-            <li class="list-group-item">
-                <div>@c.Text</div>
-                <small class="text-muted">@c.CreatedAt</small>
-            </li>
+<!-- Issue Details Card -->
+<div class="card mb-4 fade-in-up" style="animation-delay: 0.1s;">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <i data-lucide="bug" class="me-2" style="width: 18px; height: 18px;"></i>
+            <span>Issue #@Model.Id</span>
+        </div>
+        @{
+            var statusClass = Model.Status switch
+            {
+                "Open" => "bg-warning",
+                "In Progress" => "bg-info",
+                "Waiting for User" => "bg-secondary",
+                "Resolved" => "bg-success",
+                "Closed" => "bg-dark",
+                _ => "bg-secondary"
+            };
         }
-    </ul>
-}
-else
-{
-    <p class="text-muted">No comments yet.</p>
-}
-
-<h4>Add a comment</h4>
-
-<form asp-action="PostComment" method="post">
-    <input type="hidden" name="issueId" value="@Model.Id" />
-    <div class="form-group">
-        <textarea name="text" class="form-control" rows="3" placeholder="Write a comment..."></textarea>
+        <span class="badge @statusClass">
+            <i data-lucide="circle" class="me-1" style="width: 8px; height: 8px;"></i>@Model.Status
+        </span>
     </div>
-    <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
-</form>
+    <div class="card-body">
+        <h3 class="mb-3">@Model.Title</h3>
+        
+                <div class="row mb-3">
+            <div class="col-md-4">
+                <p class="mb-2">
+                    <strong><i data-lucide="alert-triangle" class="me-2" style="width: 16px; height: 16px;"></i>Priority:</strong>
+                    @{
+                        var priorityClass = Model.Priority switch
+                        {
+                            1 => "bg-danger",
+                            2 => "bg-warning",
+                            3 => "bg-info",
+                            _ => "bg-success"
+                        };
+                        var priorityText = Model.Priority switch
+                        {
+                            1 => "Critical",
+                            2 => "High",
+                            3 => "Normal",
+                            _ => "Low"
+                        };
+                    }
+                    <span class="badge @priorityClass">@priorityText (@Model.Priority)</span>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <p class="mb-2">
+                    <strong><i data-lucide="calendar" class="me-2" style="width: 16px; height: 16px;"></i>Created:</strong>
+                    @Model.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy 'at' HH:mm")
+                </p>
+            </div>
+            <div class="col-md-4">
+                <p class="mb-2">
+                    <strong><i data-lucide="user-check" class="me-2" style="width: 16px; height: 16px;"></i>Assigned:</strong>
+                    @if (string.IsNullOrEmpty(Model.AssignedToUserId))
+                    {
+                        <span class="text-muted">Unassigned</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-info">Assigned</span>
+                    }
+                </p>
+            </div>
+        </div>
 
-<p class="mt-3">
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index">Back to list</a>
-</p>
+        @* Assignment Actions for Engineers/Admins *@
+        @if (isEngineerOrAdmin)
+        {
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="d-flex gap-2 flex-wrap">
+                        @if (string.IsNullOrEmpty(Model.AssignedToUserId))
+                        {
+                            <form asp-action="AssignToMe" method="post" style="display: inline;">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i data-lucide="user-plus" class="me-1" style="width: 14px; height: 14px;"></i>
+                                    Assign to Me
+                                </button>
+                            </form>
+                        }
+                        else if (Model.AssignedToUserId == User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier))
+                        {
+                            <form asp-action="Unassign" method="post" style="display: inline;">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    <i data-lucide="user-minus" class="me-1" style="width: 14px; height: 14px;"></i>
+                                    Unassign from Me
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">
+                                <i data-lucide="user" class="me-1" style="width: 12px; height: 12px;"></i>
+                                Assigned to Another Engineer
+                            </span>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <form asp-action="Unassign" method="post" style="display: inline;">
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-warning">
+                                        <i data-lucide="user-minus" class="me-1" style="width: 14px; height: 14px;"></i>
+                                        Unassign
+                                    </button>
+                                </form>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        @* Customer Close Issue Action *@
+        @{
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isCreator = Model.CreatedByUserId == userId;
+            var canClose = (isCreator && (Model.Status == "Resolved" || Model.Status == "Waiting for User")) || isEngineerOrAdmin;
+        }
+        @if (canClose && Model.Status != "Closed")
+        {
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="alert alert-info d-flex align-items-center">
+                        <i data-lucide="info" class="me-2" style="width: 20px; height: 20px;"></i>
+                        <div class="flex-grow-1">
+                            @if (isCreator && Model.Status == "Resolved")
+                            {
+                                <text><strong>Issue Resolved:</strong> You can close this issue if you're satisfied with the resolution.</text>
+                            }
+                            else if (isCreator && Model.Status == "Waiting for User")
+                            {
+                                <text><strong>Action Required:</strong> This issue is waiting for your response. You can close it if no further action is needed.</text>
+                            }
+                            else if (isEngineerOrAdmin)
+                            {
+                                <text><strong>Admin/Engineer:</strong> You can close this issue at any time.</text>
+                            }
+                        </div>
+                        <form asp-action="CloseIssue" method="post" style="display: inline;">
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-dark" onclick="return confirm('Are you sure you want to close this issue?')">
+                                <i data-lucide="x-circle" class="me-1" style="width: 14px; height: 14px;"></i>
+                                Close Issue
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <div class="mb-3">
+                <strong><i data-lucide="file-text" class="me-2" style="width: 16px; height: 16px;"></i>Description:</strong>
+                <div class="mt-2 p-3 bg-light rounded">
+                    @Model.Description
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Comments Section -->
+<div class="card fade-in-up" style="animation-delay: 0.2s;">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <i data-lucide="message-square" class="me-2" style="width: 18px; height: 18px;"></i>
+            <span>Comments (@comments.Count)</span>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (comments.Any())
+        {
+            <div class="comment-list mb-4">
+                @foreach (var comment in comments)
+                {
+                    <div class="comment-item mb-3 p-3 border rounded">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="comment-avatar me-3">
+                                <i data-lucide="user" style="width: 20px; height: 20px; color: var(--primary-500);"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted">
+                                    <i data-lucide="clock" class="me-1" style="width: 12px; height: 12px;"></i>
+                                    @comment.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy 'at' HH:mm")
+                                </small>
+                            </div>
+                        </div>
+                        <div class="comment-text">
+                            @comment.Text
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state text-center py-4">
+                <i data-lucide="message-square" style="width: 48px; height: 48px; color: var(--gray-400);"></i>
+                <h5 class="mt-3">No comments yet</h5>
+                <p class="text-muted">Be the first to add a comment to this issue.</p>
+            </div>
+        }
+
+        <!-- Add Comment Form -->
+        <div class="border-top pt-3">
+            <h5 class="mb-3">
+                <i data-lucide="plus-circle" class="me-2" style="width: 18px; height: 18px;"></i>Add a Comment
+            </h5>
+            <form asp-action="PostComment" method="post">
+                <input type="hidden" name="issueId" value="@Model.Id" />
+                <div class="mb-3">
+                    <textarea name="text" class="form-control" rows="4" 
+                              placeholder="Share your thoughts, updates, or ask questions about this issue..." 
+                              required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i data-lucide="send" class="me-2" style="width: 16px; height: 16px;"></i>Post Comment
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -13,46 +13,59 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light fixed-top">
             <div class="container">
-                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i data-lucide="bug" class="me-2" style="width: 20px; height: 20px;"></i>
-                    <span>IssueTracker</span>
-                </a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                        <i data-lucide="bug" class="me-2" style="width: 20px; height: 20px;"></i>
+                        <span>IssueTracker</span>
+                    </a>
+                }
+                else
+                {
+                    <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Landing">
+                        <i data-lucide="bug" class="me-2" style="width: 20px; height: 20px;"></i>
+                        <span>IssueTracker</span>
+                    </a>
+                }
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
-                                <i data-lucide="layout-dashboard" class="me-2" style="width: 16px; height: 16px;"></i>Dashboard
-                            </a>
-                        </li>
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Index">
-                                    <i data-lucide="users-cog" class="me-2" style="width: 16px; height: 16px;"></i>User Management
-                                </a>
-                            </li>
-                        }
-
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <!-- My Issues (only issues created by this user) -->
                             <li class="nav-item">
-                                <a class="nav-link"
-                                   asp-area=""
-                                   asp-controller="Issues"
-                                   asp-action="Index"
-                                   asp-route-showAll="false">
-                                    <i data-lucide="user-circle" class="me-2" style="width: 16px; height: 16px;"></i>My Issues
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                    <i data-lucide="layout-dashboard" class="me-2" style="width: 16px; height: 16px;"></i>Dashboard
                                 </a>
                             </li>
-
-                            <!-- All Issues (Engineer/Admin only) -->
-                            @if (User.IsInRole("Engineer") || User.IsInRole("Admin"))
+                            
+                            @* Customer Navigation *@
+                            @if (User.IsInRole("Customer"))
                             {
+                                <!-- My Issues (only for customers) -->
+                                <li class="nav-item">
+                                    <a class="nav-link"
+                                       asp-area=""
+                                       asp-controller="Issues"
+                                       asp-action="Index"
+                                       asp-route-showAll="false">
+                                        <i data-lucide="user-circle" class="me-2" style="width: 16px; height: 16px;"></i>My Issues
+                                    </a>
+                                </li>
+                                <!-- Create Issue (only for customers) -->
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Issues" asp-action="Create">
+                                        <i data-lucide="plus" class="me-2" style="width: 16px; height: 16px;"></i>Create Issue
+                                    </a>
+                                </li>
+                            }
+                            
+                            @* Engineer Navigation *@
+                            @if (User.IsInRole("Engineer") && !User.IsInRole("Admin"))
+                            {
+                                <!-- All Issues (Engineer only) -->
                                 <li class="nav-item">
                                     <a class="nav-link"
                                        asp-area=""
@@ -60,6 +73,50 @@
                                        asp-action="Index"
                                        asp-route-showAll="true">
                                         <i data-lucide="list" class="me-2" style="width: 16px; height: 16px;"></i>All Issues
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link"
+                                       asp-area=""
+                                       asp-controller="Issues"
+                                       asp-action="AssignedToMe">
+                                        <i data-lucide="user-check" class="me-2" style="width: 16px; height: 16px;"></i>Assigned to Me
+                                    </a>
+                                </li>
+                            }
+                            
+                            @* Admin Navigation *@
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                        <i data-lucide="shield" class="me-2" style="width: 16px; height: 16px;"></i>Admin
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Index">
+                                            <i data-lucide="users-cog" class="me-2" style="width: 16px; height: 16px;"></i>User Management
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Issues">
+                                            <i data-lucide="shield-check" class="me-2" style="width: 16px; height: 16px;"></i>Manage All Issues
+                                        </a></li>
+                                    </ul>
+                                </li>
+                                <!-- All Issues (Admin view) -->
+                                <li class="nav-item">
+                                    <a class="nav-link"
+                                       asp-area=""
+                                       asp-controller="Issues"
+                                       asp-action="Index"
+                                       asp-route-showAll="true">
+                                        <i data-lucide="list" class="me-2" style="width: 16px; height: 16px;"></i>All Issues
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link"
+                                       asp-area=""
+                                       asp-controller="Issues"
+                                       asp-action="AssignedToMe">
+                                        <i data-lucide="user-check" class="me-2" style="width: 16px; height: 16px;"></i>Assigned to Me
                                     </a>
                                 </li>
                             }
@@ -74,6 +131,33 @@
     </header>
     <div class="container" style="padding-top: 6rem;">
         <main role="main" class="pb-5 fade-in-up">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i data-lucide="check-circle" class="me-2" style="width: 16px; height: 16px;"></i>
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i data-lucide="x-circle" class="me-2" style="width: 16px; height: 16px;"></i>
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            
+            @if (TempData["InfoMessage"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <i data-lucide="info" class="me-2" style="width: 16px; height: 16px;"></i>
+                    @TempData["InfoMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
             @RenderBody()
         </main>
     </div>

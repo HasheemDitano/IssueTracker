@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using IssueTracker.Data;
 using IssueTracker.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IssueTracker.Controllers
@@ -14,6 +15,20 @@ namespace IssueTracker.Controllers
             _context = context;
         }
 
+        // Public homepage for anonymous users
+        public IActionResult Landing()
+        {
+            // If user is already authenticated, redirect to dashboard
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToAction("Index");
+            }
+            
+            return View();
+        }
+
+        // Protected dashboard for authenticated users
+        [Authorize]
         public IActionResult Index()
         {
             var total = _context.Issues.Count();
@@ -26,6 +41,14 @@ namespace IssueTracker.Controllers
             ViewBag.OpenIssues = open;
             ViewBag.InProgressIssues = inProgress;
             ViewBag.ResolvedClosedIssues = resolvedClosed;
+
+            // Get recent issues for the dashboard
+            var recentIssues = _context.Issues
+                .OrderByDescending(i => i.CreatedAt)
+                .Take(5)
+                .ToList();
+
+            ViewBag.RecentIssues = recentIssues;
 
             return View();
         }

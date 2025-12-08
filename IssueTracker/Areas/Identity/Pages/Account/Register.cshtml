@@ -1,0 +1,81 @@
+@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7">
+            <div class="text-center mb-4 fade-in-up">
+                <div class="mb-3">
+                    <i data-lucide="user-plus" style="width: 48px; height: 48px; color: var(--primary-500);"></i>
+                </div>
+                <h2 class="mb-2">Create Your Account</h2>
+                <p class="text-muted">Join our Issue Tracker system and start managing issues efficiently</p>
+            </div>
+
+            <div class="card border-0 shadow-sm fade-in-up" style="animation-delay: 0.2s;">
+                <div class="card-body p-4">
+                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Input.Email" class="form-label fw-semibold">
+                                <i data-lucide="mail" class="me-2" style="width: 16px; height: 16px;"></i>Email Address
+                            </label>
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="Enter your email address" />
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Input.Role" class="form-label fw-semibold">
+                                <i data-lucide="user-check" class="me-2" style="width: 16px; height: 16px;"></i>Account Type
+                            </label>
+                            <select asp-for="Input.Role" class="form-select" required>
+                                <option value="">Please select your account type...</option>
+                                <option value="Customer">Customer - Report and track issues</option>
+                                <option value="Engineer">Engineer - Resolve and manage issues</option>
+                            </select>
+                            <span asp-validation-for="Input.Role" class="text-danger"></span>
+                            <div class="form-text">
+                                <i data-lucide="info" class="me-1" style="width: 12px; height: 12px;"></i>Choose the role that best describes your intended use
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Input.Password" class="form-label fw-semibold">
+                                <i data-lucide="lock" class="me-2" style="width: 16px; height: 16px;"></i>Password
+                            </label>
+                            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Create a strong password" />
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Input.ConfirmPassword" class="form-label fw-semibold">
+                                <i data-lucide="lock" class="me-2" style="width: 16px; height: 16px;"></i>Confirm Password
+                            </label>
+                            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Confirm your password" />
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        </div>
+                        
+                        <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                            <i data-lucide="user-plus" class="me-2" style="width: 18px; height: 18px;"></i>Create Account
+                        </button>
+                    </form>
+
+                    <div class="text-center">
+                        <p class="text-muted mb-0">Already have an account?</p>
+                        <a class="btn btn-link" asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">
+                            <i data-lucide="log-in" class="me-2" style="width: 16px; height: 16px;"></i>Sign in here
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

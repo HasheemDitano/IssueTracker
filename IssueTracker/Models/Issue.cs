@@ -24,5 +24,8 @@ namespace IssueTracker.Models
 
         // who created this issue (Identity user Id)
         public string? CreatedByUserId { get; set; }
+
+        // who is assigned to resolve this issue (Engineer/Admin user Id)
+        public string? AssignedToUserId { get; set; }
     }
 }

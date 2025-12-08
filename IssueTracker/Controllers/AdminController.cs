@@ -35,6 +35,97 @@ namespace IssueTracker.Controllers
             return View(model);
         }
 
+        // POST: /Admin/AddRole
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddRole(string userId, string role)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(role))
+            {
+                TempData["ErrorMessage"] = "Invalid user or role.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) 
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return NotFound();
+            }
+
+            var validRoles = new[] { "Customer", "Engineer", "Admin" };
+            if (!validRoles.Contains(role))
+            {
+                TempData["ErrorMessage"] = "Invalid role.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Ensure role exists
+            if (!await _roleManager.RoleExistsAsync(role))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(role));
+            }
+
+            // Add user to role if not already in it
+            if (!await _userManager.IsInRoleAsync(user, role))
+            {
+                var result = await _userManager.AddToRoleAsync(user, role);
+                if (result.Succeeded)
+                {
+                    TempData["SuccessMessage"] = $"Successfully added {role} role to {user.Email}.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Failed to add role to user.";
+                }
+            }
+            else
+            {
+                TempData["InfoMessage"] = $"User already has {role} role.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: /Admin/RemoveRole
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveRole(string userId, string role)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(role))
+            {
+                TempData["ErrorMessage"] = "Invalid user or role.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) 
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return NotFound();
+            }
+
+            // Remove user from role if they have it
+            if (await _userManager.IsInRoleAsync(user, role))
+            {
+                var result = await _userManager.RemoveFromRoleAsync(user, role);
+                if (result.Succeeded)
+                {
+                    TempData["SuccessMessage"] = $"Successfully removed {role} role from {user.Email}.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Failed to remove role from user.";
+                }
+            }
+            else
+            {
+                TempData["InfoMessage"] = $"User does not have {role} role.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         // POST: /Admin/SetRole
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -42,11 +133,16 @@ namespace IssueTracker.Controllers
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(role))
             {
+                TempData["ErrorMessage"] = "Invalid user or role.";
                 return RedirectToAction(nameof(Index));
             }
 
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return NotFound();
+            if (user == null) 
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return NotFound();
+            }
 
             var allRoles = new[] { "Customer", "Engineer", "Admin" };
 
@@ -57,10 +153,117 @@ namespace IssueTracker.Controllers
             // Add to selected role
             if (allRoles.Contains(role))
             {
-                await _userManager.AddToRoleAsync(user, role);
+                // Ensure role exists
+                if (!await _roleManager.RoleExistsAsync(role))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(role));
+                }
+
+                var result = await _userManager.AddToRoleAsync(user, role);
+                if (result.Succeeded)
+                {
+                    TempData["SuccessMessage"] = $"Successfully set {user.Email} role to {role}.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Failed to set user role.";
+                }
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // GET: /Admin/Issues
+        public IActionResult Issues(string? status, string? assignedTo)
+        {
+            var issues = HttpContext.RequestServices.GetRequiredService<IssueTracker.Data.AppDbContext>()
+                .Issues.AsQueryable();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(status))
+            {
+                issues = issues.Where(i => i.Status == status);
+            }
+
+            if (!string.IsNullOrEmpty(assignedTo))
+            {
+                issues = issues.Where(i => i.AssignedToUserId == assignedTo);
+            }
+
+            var issuesList = issues.OrderBy(i => i.Priority)
+                                 .ThenByDescending(i => i.CreatedAt)
+                                 .ToList();
+
+            // Get user list for assignment filter
+            var users = _userManager.Users.ToList();
+            ViewBag.Users = users.Select(u => new { u.Id, u.Email }).ToList();
+            
+            ViewBag.CurrentStatus = status;
+            ViewBag.CurrentAssignedTo = assignedTo;
+            ViewBag.StatusOptions = new[] { "Open", "In Progress", "Waiting for User", "Resolved", "Closed" };
+
+            return View(issuesList);
+        }
+
+        // POST: /Admin/BulkAssign
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult BulkAssign(int[] issueIds, string assignToUserId)
+        {
+            if (issueIds == null || !issueIds.Any())
+            {
+                TempData["ErrorMessage"] = "No issues selected.";
+                return RedirectToAction(nameof(Issues));
+            }
+
+            var appContext = HttpContext.RequestServices.GetRequiredService<IssueTracker.Data.AppDbContext>();
+            var issues = appContext.Issues.Where(i => issueIds.Contains(i.Id)).ToList();
+
+            foreach (var issue in issues)
+            {
+                issue.AssignedToUserId = string.IsNullOrEmpty(assignToUserId) ? null : assignToUserId;
+                if (!string.IsNullOrEmpty(assignToUserId) && issue.Status == "Open")
+                {
+                    issue.Status = "In Progress";
+                }
+            }
+
+            appContext.SaveChanges();
+            TempData["SuccessMessage"] = $"Successfully updated {issues.Count} issues.";
+
+            return RedirectToAction(nameof(Issues));
+        }
+
+        // POST: /Admin/BulkUpdateStatus
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult BulkUpdateStatus(int[] issueIds, string newStatus)
+        {
+            if (issueIds == null || !issueIds.Any())
+            {
+                TempData["ErrorMessage"] = "No issues selected.";
+                return RedirectToAction(nameof(Issues));
+            }
+
+            var validStatuses = new[] { "Open", "In Progress", "Waiting for User", "Resolved", "Closed" };
+            if (!validStatuses.Contains(newStatus))
+            {
+                TempData["ErrorMessage"] = "Invalid status selected.";
+                return RedirectToAction(nameof(Issues));
+            }
+
+            var appContext = HttpContext.RequestServices.GetRequiredService<IssueTracker.Data.AppDbContext>();
+            var issues = appContext.Issues.Where(i => issueIds.Contains(i.Id)).ToList();
+
+            foreach (var issue in issues)
+            {
+                issue.Status = newStatus;
+            }
+
+            appContext.SaveChanges();
+            TempData["SuccessMessage"] = $"Successfully updated status of {issues.Count} issues to {newStatus}.";
+
+            return RedirectToAction(nameof(Issues));
         }
     }
 }

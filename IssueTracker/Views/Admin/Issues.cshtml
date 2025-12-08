@@ -1,0 +1,249 @@
+@model List<IssueTracker.Models.Issue>
+
+<div class="d-flex justify-content-between align-items-start mb-5 fade-in-up">
+    <div>
+        <h1 class="mb-3 d-flex align-items-center">
+            <i data-lucide="shield-check" class="me-3" style="width: 32px; height: 32px;"></i>Admin - All Issues Management
+        </h1>
+        <p class="text-muted lead mb-0">Comprehensive issue management with administrative controls</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("Index", "Admin")" class="btn btn-outline-secondary">
+            <i data-lucide="users" class="me-2" style="width: 16px; height: 16px;"></i>User Management
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 fade-in-up" style="animation-delay: 0.1s;">
+    <div class="card-header">
+        <i data-lucide="filter" class="me-2" style="width: 18px; height: 18px;"></i>
+        <span>Filter & Search</span>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    @foreach (var status in ViewBag.StatusOptions)
+                    {
+                        <option value="@status" selected="@(ViewBag.CurrentStatus == status)">@status</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="assignedTo" class="form-label">Assigned To</label>
+                <select name="assignedTo" id="assignedTo" class="form-select">
+                    <option value="">All Users</option>
+                    <option value="unassigned" selected="@(ViewBag.CurrentAssignedTo == "unassigned")">Unassigned</option>
+                    @if (ViewBag.Users != null)
+                    {
+                        @foreach (var user in ViewBag.Users)
+                        {
+                            <option value="@user.Id" selected="@(ViewBag.CurrentAssignedTo == user.Id)">@user.Email</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i data-lucide="search" class="me-2" style="width: 16px; height: 16px;"></i>Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bulk Actions -->
+<div class="card mb-4 fade-in-up" style="animation-delay: 0.2s;">
+    <div class="card-header">
+        <i data-lucide="layers" class="me-2" style="width: 18px; height: 18px;"></i>
+        <span>Bulk Actions</span>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <form asp-action="BulkAssign" method="post">
+                    <div class="input-group">
+                        <select name="assignToUserId" class="form-select">
+                            <option value="">Unassign</option>
+                            @if (ViewBag.Users != null)
+                            {
+                                @foreach (var user in ViewBag.Users)
+                                {
+                                    <option value="@user.Id">@user.Email</option>
+                                }
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i data-lucide="user-plus" class="me-1" style="width: 14px; height: 14px;"></i>Assign
+                        </button>
+                    </div>
+                    <input type="hidden" name="issueIds" id="bulkAssignIds" />
+                </form>
+            </div>
+            <div class="col-md-4">
+                <form asp-action="BulkUpdateStatus" method="post">
+                    <div class="input-group">
+                        <select name="newStatus" class="form-select">
+                            <option value="">Select Status</option>
+                            @foreach (var status in ViewBag.StatusOptions)
+                            {
+                                <option value="@status">@status</option>
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-outline-warning">
+                            <i data-lucide="edit" class="me-1" style="width: 14px; height: 14px;"></i>Update
+                        </button>
+                    </div>
+                    <input type="hidden" name="issueIds" id="bulkStatusIds" />
+                </form>
+            </div>
+            <div class="col-md-4">
+                <button type="button" class="btn btn-outline-info w-100" onclick="selectAllIssues()">
+                    <i data-lucide="check-square" class="me-2" style="width: 14px; height: 14px;"></i>Select All
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Issues Table -->
+<div class="card fade-in-up" style="animation-delay: 0.3s;">
+    <div class="card-header">
+        <i data-lucide="list" class="me-2" style="width: 18px; height: 18px;"></i>
+        <span>Issues (@Model.Count)</span>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="empty-state text-center py-5">
+                <i data-lucide="inbox" style="width: 48px; height: 48px; color: var(--gray-400);"></i>
+                <h5 class="mt-3">No issues found</h5>
+                <p class="text-muted">Try adjusting your filters to find issues.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th width="40"><input type="checkbox" id="selectAll" onchange="toggleAllIssues()"></th>
+                            <th>Issue</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Assigned To</th>
+                            <th>Created</th>
+                            <th width="120">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var issue in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="issue-checkbox" value="@issue.Id" onchange="updateBulkActions()">
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">#@issue.Id @issue.Title</div>
+                                    <small class="text-muted">@(issue.Description?.Length > 50 ? issue.Description.Substring(0, 50) + "..." : issue.Description)</small>
+                                </td>
+                                <td>
+                                    @{
+                                        var statusClass = issue.Status switch
+                                        {
+                                            "Open" => "bg-warning",
+                                            "In Progress" => "bg-info",
+                                            "Waiting for User" => "bg-secondary",
+                                            "Resolved" => "bg-success",
+                                            "Closed" => "bg-dark",
+                                            _ => "bg-secondary"
+                                        };
+                                    }
+                                    <span class="badge @statusClass">@issue.Status</span>
+                                </td>
+                                <td>
+                                    @{
+                                        var priorityClass = issue.Priority switch
+                                        {
+                                            1 => "bg-danger",
+                                            2 => "bg-warning",
+                                            3 => "bg-info",
+                                            _ => "bg-success"
+                                        };
+                                        var priorityText = issue.Priority switch
+                                        {
+                                            1 => "Critical",
+                                            2 => "High",
+                                            3 => "Normal",
+                                            _ => "Low"
+                                        };
+                                    }
+                                    <span class="badge @priorityClass">@priorityText</span>
+                                </td>
+                                <td>
+                                    @if (string.IsNullOrEmpty(issue.AssignedToUserId))
+                                    {
+                                        <span class="text-muted">Unassigned</span>
+                                    }
+                                    else
+                                    {
+                                        var assignedUser = ((IEnumerable<dynamic>)ViewBag.Users)?.FirstOrDefault(u => u.Id == issue.AssignedToUserId);
+                                        <span class="badge bg-info">@(assignedUser?.Email ?? "Unknown")</span>
+                                    }
+                                </td>
+                                <td class="text-muted">
+                                    @issue.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-controller="Issues" asp-action="Details" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-primary">
+                                            <i data-lucide="eye" style="width: 12px; height: 12px;"></i>
+                                        </a>
+                                        <a asp-controller="Issues" asp-action="Edit" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-secondary">
+                                            <i data-lucide="edit" style="width: 12px; height: 12px;"></i>
+                                        </a>
+                                        <a asp-controller="Issues" asp-action="Delete" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-danger">
+                                            <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+function toggleAllIssues() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.issue-checkbox');
+    checkboxes.forEach(checkbox => checkbox.checked = selectAll.checked);
+    updateBulkActions();
+}
+
+function selectAllIssues() {
+    const checkboxes = document.querySelectorAll('.issue-checkbox');
+    checkboxes.forEach(checkbox => checkbox.checked = true);
+    document.getElementById('selectAll').checked = true;
+    updateBulkActions();
+}
+
+function updateBulkActions() {
+    const checkedBoxes = document.querySelectorAll('.issue-checkbox:checked');
+    const issueIds = Array.from(checkedBoxes).map(cb => cb.value);
+    
+    document.getElementById('bulkAssignIds').value = issueIds.join(',');
+    document.getElementById('bulkStatusIds').value = issueIds.join(',');
+    
+    // Update select all checkbox state
+    const allCheckboxes = document.querySelectorAll('.issue-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    selectAllCheckbox.checked = checkedBoxes.length === allCheckboxes.length && allCheckboxes.length > 0;
+}
+</script>

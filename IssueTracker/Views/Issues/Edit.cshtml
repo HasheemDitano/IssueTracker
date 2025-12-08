@@ -1,49 +1,116 @@
 ﻿
 @model IssueTracker.Models.Issue
 
-<h1>Edit Issue</h1>
+@{
+    var isEngineerOrAdmin = User.IsInRole("Engineer") || User.IsInRole("Admin");
+}
 
-<form asp-action="Edit" method="post">
-    <input type="hidden" asp-for="Id" />
-
-    <div class="form-group">
-        <label asp-for="Title"></label>
-        <input asp-for="Title" class="form-control" />
-        <span asp-validation-for="Title" class="text-danger"></span>
+<div class="d-flex justify-content-between align-items-start mb-5 fade-in-up">
+    <div>
+        <h1 class="mb-3 d-flex align-items-center">
+            <i data-lucide="edit" class="me-3" style="width: 32px; height: 32px;"></i>Edit Issue
+        </h1>
+        <p class="text-muted lead mb-0">Update issue information and status</p>
     </div>
+    <a href="@Url.Action("Details", "Issues", new { id = Model.Id })" class="btn btn-outline-secondary">
+        <i data-lucide="arrow-left" class="me-2" style="width: 16px; height: 16px;"></i>Back to Details
+    </a>
+</div>
 
-    <div class="form-group">
-        <label asp-for="Description"></label>
-        <textarea asp-for="Description" class="form-control"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card fade-in-up" style="animation-delay: 0.2s;">
+            <div class="card-header d-flex align-items-center">
+                <i data-lucide="edit" class="me-2" style="width: 18px; height: 18px;"></i>
+                <span>Issue #@Model.Id - Edit Information</span>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="CreatedAt" />
+                    <input type="hidden" asp-for="CreatedByUserId" />
+
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <label asp-for="Title" class="form-label fw-semibold">
+                                <i data-lucide="tag" class="me-2" style="width: 16px; height: 16px;"></i>Issue Title
+                            </label>
+                            <input asp-for="Title" class="form-control" placeholder="Enter a descriptive title for the issue..." />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 mb-4">
+                            <label asp-for="Description" class="form-label fw-semibold">
+                                <i data-lucide="file-text" class="me-2" style="width: 16px; height: 16px;"></i>Description
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="6" 
+                                      placeholder="Describe the issue in detail..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Priority" class="form-label fw-semibold">
+                                <i data-lucide="alert-triangle" class="me-2" style="width: 16px; height: 16px;"></i>Priority Level
+                            </label>
+                            <select asp-for="Priority" class="form-select">
+                                <option value="1">🔥 Critical (1) - System Down</option>
+                                <option value="2">⚠️ High (2) - Major Issue</option>
+                                <option value="3">📋 Normal (3) - Standard Issue</option>
+                                <option value="4">📝 Low (4) - Minor Issue</option>
+                                <option value="5">💭 Lowest (5) - Enhancement</option>
+                            </select>
+                            <span asp-validation-for="Priority" class="text-danger"></span>
+                        </div>
+
+                        @if (isEngineerOrAdmin)
+                        {
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Status" class="form-label fw-semibold">
+                                    <i data-lucide="info" class="me-2" style="width: 16px; height: 16px;"></i>Status
+                                </label>
+                                <select asp-for="Status" class="form-select">
+                                    <option value="Open">📋 Open</option>
+                                    <option value="In Progress">⏳ In Progress</option>
+                                    <option value="Waiting for User">⏸️ Waiting for User</option>
+                                    <option value="Resolved">✅ Resolved</option>
+                                    <option value="Closed">🔒 Closed</option>
+                                </select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
+                                <div class="form-text">
+                                    <i data-lucide="info" class="me-1" style="width: 12px; height: 12px;"></i>Engineers and Admins can change the status
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i data-lucide="info" class="me-2" style="width: 16px; height: 16px;"></i>Current Status
+                                </label>
+                                <input type="hidden" asp-for="Status" />
+                                <input type="text" class="form-control" value="@Model.Status" disabled />
+                                <div class="form-text">
+                                    <i data-lucide="lock" class="me-1" style="width: 12px; height: 12px;"></i>Only Engineers and Admins can change the status
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <a href="@Url.Action("Details", "Issues", new { id = Model.Id })" class="btn btn-outline-secondary">
+                            <i data-lucide="x" class="me-2" style="width: 16px; height: 16px;"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i data-lucide="save" class="me-2" style="width: 18px; height: 18px;"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label asp-for="Status"></label>
-        <select asp-for="Status" class="form-control">
-            <option>Open</option>
-            <option>In Progress</option>
-            <option>Waiting for User</option>
-            <option>Resolved</option>
-            <option>Closed</option>
-        </select>
-        <span asp-validation-for="Status" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Priority"></label>
-        <select asp-for="Priority" class="form-control">
-            <option value="1">1 - Highest</option>
-            <option value="2">2</option>
-            <option value="3">3 - Normal</option>
-            <option value="4">4</option>
-            <option value="5">5 - Lowest</option>
-        </select>
-        <span asp-validation-for="Priority" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save</button>
-</form>
+</div>
 
 @section Scripts {
     @{

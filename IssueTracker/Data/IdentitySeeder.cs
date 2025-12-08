@@ -27,6 +27,10 @@ namespace IssueTracker.Data
             }
 
             // Seed admin user
+            // DEFAULT ADMIN CREDENTIALS FOR DEVELOPMENT:
+            // Email: admin@issue.local
+            // Password: Admin123!
+            // Roles: Admin, Engineer
             var adminEmail = "admin@issue.local";
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
@@ -46,6 +50,56 @@ namespace IssueTracker.Data
                 {
                     await userManager.AddToRoleAsync(adminUser, "Admin");
                     await userManager.AddToRoleAsync(adminUser, "Engineer");
+                }
+            }
+
+            // Seed sample engineer user
+            // DEFAULT ENGINEER CREDENTIALS FOR DEVELOPMENT:
+            // Email: engineer@issue.local
+            // Password: Engineer123!
+            // Roles: Engineer
+            var engineerEmail = "engineer@issue.local";
+            var engineerUser = await userManager.FindByEmailAsync(engineerEmail);
+
+            if (engineerUser == null)
+            {
+                engineerUser = new IdentityUser
+                {
+                    UserName = engineerEmail,
+                    Email = engineerEmail,
+                    EmailConfirmed = true
+                };
+
+                var result = await userManager.CreateAsync(engineerUser, "Engineer123!");
+
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(engineerUser, "Engineer");
+                }
+            }
+
+            // Seed sample customer user
+            // DEFAULT CUSTOMER CREDENTIALS FOR DEVELOPMENT:
+            // Email: customer@issue.local
+            // Password: Customer123!
+            // Roles: Customer
+            var customerEmail = "customer@issue.local";
+            var customerUser = await userManager.FindByEmailAsync(customerEmail);
+
+            if (customerUser == null)
+            {
+                customerUser = new IdentityUser
+                {
+                    UserName = customerEmail,
+                    Email = customerEmail,
+                    EmailConfirmed = true
+                };
+
+                var result = await userManager.CreateAsync(customerUser, "Customer123!");
+
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(customerUser, "Customer");
                 }
             }
         }

@@ -1,0 +1,78 @@
+@{
+    ViewData["Title"] = "Issue Tracker - Manage Your Issues Efficiently";
+}
+
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="text-center mb-5 fade-in-up">
+        <div class="mb-4">
+            <i data-lucide="bug" style="width: 64px; height: 64px; color: var(--primary-500);"></i>
+        </div>
+        <h1 class="display-4 mb-3 fw-bold">Issue Tracker</h1>
+        <p class="lead text-muted mb-4">Streamline your project management with our powerful issue tracking system. Report, track, and resolve issues efficiently.</p>
+        
+        <div class="d-flex gap-3 justify-content-center">
+            <a href="@Url.Page("/Account/Login", new { area = "Identity" })" class="btn btn-primary btn-lg">
+                <i data-lucide="log-in" class="me-2" style="width: 18px; height: 18px;"></i>Sign In
+            </a>
+            <a href="@Url.Page("/Account/Register", new { area = "Identity" })" class="btn btn-outline-primary btn-lg">
+                <i data-lucide="user-plus" class="me-2" style="width: 18px; height: 18px;"></i>Register
+            </a>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mb-5">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm slide-in" style="animation-delay: 0.1s;">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i data-lucide="clipboard-list" style="width: 48px; height: 48px; color: var(--primary-500);"></i>
+                    </div>
+                    <h5 class="card-title">Issue Management</h5>
+                    <p class="card-text text-muted">Create, track, and manage issues with detailed information, priorities, and status updates.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm slide-in" style="animation-delay: 0.2s;">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i data-lucide="users" style="width: 48px; height: 48px; color: var(--success-500);"></i>
+                    </div>
+                    <h5 class="card-title">Team Collaboration</h5>
+                    <p class="card-text text-muted">Work together with role-based access for Customers, Engineers, and Administrators.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm slide-in" style="animation-delay: 0.3s;">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i data-lucide="bar-chart-3" style="width: 48px; height: 48px; color: var(--info-500);"></i>
+                    </div>
+                    <h5 class="card-title">Progress Tracking</h5>
+                    <p class="card-text text-muted">Monitor progress with comprehensive dashboards and real-time status updates.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action Section -->
+    <div class="card bg-light border-0 fade-in-up" style="animation-delay: 0.4s;">
+        <div class="card-body text-center p-5">
+            <h3 class="mb-3">Ready to get started?</h3>
+            <p class="text-muted mb-4">Join thousands of teams who trust our issue tracking system to streamline their workflow and improve productivity.</p>
+            <div class="d-flex gap-3 justify-content-center">
+                <a href="@Url.Page("/Account/Register", new { area = "Identity" })" class="btn btn-primary btn-lg">
+                    <i data-lucide="rocket" class="me-2" style="width: 18px; height: 18px;"></i>Get Started Now
+                </a>
+                <a href="@Url.Page("/Account/Login", new { area = "Identity" })" class="btn btn-outline-secondary btn-lg">
+                    <i data-lucide="log-in" class="me-2" style="width: 18px; height: 18px;"></i>Already have an account?
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
