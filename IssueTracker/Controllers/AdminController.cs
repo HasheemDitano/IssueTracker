@@ -265,5 +265,63 @@ namespace IssueTracker.Controllers
 
             return RedirectToAction(nameof(Issues));
         }
+
+        // POST: /Admin/DeleteUser
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteUser(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["ErrorMessage"] = "Invalid user ID.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Prevent deletion of the current admin user
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null && currentUser.Id == userId)
+            {
+                TempData["ErrorMessage"] = "You cannot delete your own account.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Check if user has created any issues or comments
+            var appContext = HttpContext.RequestServices.GetRequiredService<IssueTracker.Data.AppDbContext>();
+            var hasIssues = appContext.Issues.Any(i => i.CreatedByUserId == userId || i.AssignedToUserId == userId);
+            var hasComments = appContext.Comments.Any(c => c.CreatedByUserId == userId);
+
+            if (hasIssues || hasComments)
+            {
+                TempData["ErrorMessage"] = "Cannot delete user who has created issues or comments. Please reassign or delete their content first.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Remove user from all roles first
+            var userRoles = await _userManager.GetRolesAsync(user);
+            if (userRoles.Any())
+            {
+                await _userManager.RemoveFromRolesAsync(user, userRoles);
+            }
+
+            // Delete the user
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = $"Successfully deleted user {user.Email}.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Failed to delete user. " + string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

@@ -89,6 +89,11 @@
                 <i data-lucide="crown" class="me-2" style="width: 14px; height: 14px;"></i>Admin Role
             </div>
         </th>
+        <th>
+            <div class="d-flex align-items-center">
+                <i data-lucide="settings" class="me-2" style="width: 14px; height: 14px;"></i>Actions
+            </div>
+        </th>
     </tr>
 </thead>
     <tbody>
@@ -181,6 +186,16 @@
                             </button>
                         </form>
                     </div>
+                </td>
+                <td>
+                    <form asp-action="DeleteUser" method="post" style="display:inline" 
+                          onsubmit="return confirm('Are you sure you want to delete user @item.User.Email? This action cannot be undone.')">
+                        <input type="hidden" name="userId" value="@item.User.Id" />
+                        <button type="submit" class="btn btn-sm" style="background-color: #dc3545; border-color: #dc3545; color: white;" 
+                                title="Delete User">
+                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
         }
