@@ -15,18 +15,6 @@
         <p class="text-muted lead mb-0">View and manage issue information and comments</p>
     </div>
     <div class="d-flex gap-2">
-        @if (canEdit)
-        {
-            <a href="@Url.Action("Edit", "Issues", new { id = Model.Id })" class="btn btn-outline-primary">
-                <i data-lucide="edit" class="me-2" style="width: 16px; height: 16px;"></i>Edit Issue
-            </a>
-        }
-        @if (User.IsInRole("Admin"))
-        {
-            <a href="@Url.Action("Delete", "Issues", new { id = Model.Id })" class="btn btn-outline-danger">
-                <i data-lucide="trash-2" class="me-2" style="width: 16px; height: 16px;"></i>Delete Issue
-            </a>
-        }
         <a href="@Url.Action("Index", "Issues")" class="btn btn-outline-secondary">
             <i data-lucide="arrow-left" class="me-2" style="width: 16px; height: 16px;"></i>Back to Issues
         </a>
@@ -102,53 +90,7 @@
             </div>
         </div>
 
-        @* Assignment Actions for Engineers/Admins *@
-        @if (isEngineerOrAdmin)
-        {
-            <div class="row mb-3">
-                <div class="col-12">
-                    <div class="d-flex gap-2 flex-wrap">
-                        @if (string.IsNullOrEmpty(Model.AssignedToUserId))
-                        {
-                            <form asp-action="AssignToMe" method="post" style="display: inline;">
-                                <input type="hidden" name="id" value="@Model.Id" />
-                                <button type="submit" class="btn btn-sm btn-success">
-                                    <i data-lucide="user-plus" class="me-1" style="width: 14px; height: 14px;"></i>
-                                    Assign to Me
-                                </button>
-                            </form>
-                        }
-                        else if (Model.AssignedToUserId == User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier))
-                        {
-                            <form asp-action="Unassign" method="post" style="display: inline;">
-                                <input type="hidden" name="id" value="@Model.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-warning">
-                                    <i data-lucide="user-minus" class="me-1" style="width: 14px; height: 14px;"></i>
-                                    Unassign from Me
-                                </button>
-                            </form>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">
-                                <i data-lucide="user" class="me-1" style="width: 12px; height: 12px;"></i>
-                                Assigned to Another Engineer
-                            </span>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <form asp-action="Unassign" method="post" style="display: inline;">
-                                    <input type="hidden" name="id" value="@Model.Id" />
-                                    <button type="submit" class="btn btn-sm btn-outline-warning">
-                                        <i data-lucide="user-minus" class="me-1" style="width: 14px; height: 14px;"></i>
-                                        Unassign
-                                    </button>
-                                </form>
-                            }
-                        }
-                    </div>
-                </div>
-            </div>
-        }
+        @* Assignment Actions removed *@
 
         @* Customer Close Issue Action *@
         @{
@@ -178,8 +120,8 @@
                         </div>
                         <form asp-action="CloseIssue" method="post" style="display: inline;">
                             <input type="hidden" name="id" value="@Model.Id" />
-                            <button type="submit" class="btn btn-sm btn-outline-dark" onclick="return confirm('Are you sure you want to close this issue?')">
-                                <i data-lucide="x-circle" class="me-1" style="width: 14px; height: 14px;"></i>
+                            <button type="submit" class="btn btn-lg shadow" style="background-color: #dc3545; border-color: #dc3545; color: white; font-weight: 600;" onclick="return confirm('Are you sure you want to close this issue?')">
+                                <i data-lucide="x-circle" class="me-2" style="width: 18px; height: 18px;"></i>
                                 Close Issue
                             </button>
                         </form>
@@ -254,7 +196,7 @@
                               placeholder="Share your thoughts, updates, or ask questions about this issue..." 
                               required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn" style="background-color: #667eea; border-color: #667eea; color: white;">
                     <i data-lucide="send" class="me-2" style="width: 16px; height: 16px;"></i>Post Comment
                 </button>
             </form>

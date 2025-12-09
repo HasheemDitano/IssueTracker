@@ -37,22 +37,24 @@
     /* Header Card */
     .header-card {
         grid-column: 1 / -1;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #667eea;
         color: white;
         text-align: center;
         padding: 2.5rem 2rem;
     }
     
     .header-title {
-        font-size: 2.25rem;
-        font-weight: 700;
+        font-size: 3rem;
+        font-weight: 2000;
         margin-bottom: 0.75rem;
+        color: #FFFFFF
     }
     
     .header-subtitle {
         font-size: 1.1rem;
         opacity: 0.9;
         margin: 0;
+        color: #FFFFFF
     }
     
     /* Stat Cards */
@@ -507,33 +509,7 @@
     .activity-timeline::-webkit-scrollbar-track { background: #f1f5f9; }
     .activity-timeline::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
     
-    /* Fix for consistent card sizing and white background fitting */
-    .dashboard-container {
-        overflow-x: hidden;
-        width: 100%;
-        max-width: 100vw;
-        box-sizing: border-box;
-    }
-    
-    .container-fluid {
-        width: 100%;
-        max-width: 100%;
-        padding: 0 1rem;
-        box-sizing: border-box;
-        overflow: hidden;
-    }
-    
-    .dashboard-grid {
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-    
-    .stat-card {
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-    }
+    /* Clean, simple styling */
 </style>
 
 <div class="dashboard-container">
@@ -818,56 +794,7 @@
                 }
             </div>
 
-            <!-- Quick Actions -->
-            <div class="dashboard-card chart-card small fade-in">
-                <div class="chart-header">
-                    <div>
-                        <h3 class="chart-title">
-                            <i data-lucide="zap"></i>
-                            Quick Actions
-                        </h3>
-                        <p class="chart-subtitle">Common tasks</p>
-                    </div>
-                </div>
-                
-                <div class="quick-actions-grid">
-                    @if (User.IsInRole("Customer"))
-                    {
-                        <a href="@Url.Action("Create", "Issues")" class="action-card primary">
-                            <i data-lucide="plus-circle" class="action-icon"></i>
-                            <h4 class="action-title">New Issue</h4>
-                        </a>
-                        <a href="@Url.Action("Index", "Issues")" class="action-card info">
-                            <i data-lucide="user" class="action-icon"></i>
-                            <h4 class="action-title">My Issues</h4>
-                        </a>
-                    }
-                    
-                    @if (User.IsInRole("Engineer") || User.IsInRole("Admin"))
-                    {
-                        <a href="@Url.Action("AssignedToMe", "Issues")" class="action-card success">
-                            <i data-lucide="user-check" class="action-icon"></i>
-                            <h4 class="action-title">Assignments</h4>
-                        </a>
-                        <a href="@Url.Action("Index", "Issues", new { showAll = true })" class="action-card warning">
-                            <i data-lucide="list" class="action-icon"></i>
-                            <h4 class="action-title">All Issues</h4>
-                        </a>
-                    }
-                    
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <a href="@Url.Action("Index", "Admin")" class="action-card primary">
-                            <i data-lucide="users" class="action-icon"></i>
-                            <h4 class="action-title">Users</h4>
-                        </a>
-                        <a href="@Url.Action("Issues", "Admin")" class="action-card info">
-                            <i data-lucide="shield" class="action-icon"></i>
-                            <h4 class="action-title">Admin</h4>
-                        </a>
-                    }
-                </div>
-            </div>
+            <!-- Quick Actions section removed -->
         </div>
     </div>
 </div>

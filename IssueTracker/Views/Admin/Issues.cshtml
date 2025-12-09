@@ -47,7 +47,7 @@
                 </select>
             </div>
             <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100">
+                <button type="submit" class="btn w-100" style="background-color: #667eea; border-color: #667eea; color: white;">
                     <i data-lucide="search" class="me-2" style="width: 16px; height: 16px;"></i>Apply Filters
                 </button>
             </div>
@@ -76,7 +76,7 @@
                                 }
                             }
                         </select>
-                        <button type="submit" class="btn btn-outline-primary">
+                        <button type="submit" class="btn" style="background-color: #667eea; border-color: #667eea; color: white;">
                             <i data-lucide="user-plus" class="me-1" style="width: 14px; height: 14px;"></i>Assign
                         </button>
                     </div>
@@ -101,7 +101,7 @@
                 </form>
             </div>
             <div class="col-md-4">
-                <button type="button" class="btn btn-outline-info w-100" onclick="selectAllIssues()">
+                <button type="button" class="btn w-100" style="background-color: #667eea; border-color: #667eea; color: white;" onclick="selectAllIssues()">
                     <i data-lucide="check-square" class="me-2" style="width: 14px; height: 14px;"></i>Select All
                 </button>
             </div>
@@ -199,7 +199,7 @@
                                 </td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <a asp-controller="Issues" asp-action="Details" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-primary">
+                                        <a asp-controller="Issues" asp-action="Details" asp-route-id="@issue.Id" class="btn btn-sm" style="background-color: #667eea; border-color: #667eea; color: white;">
                                             <i data-lucide="eye" style="width: 12px; height: 12px;"></i>
                                         </a>
                                         <a asp-controller="Issues" asp-action="Edit" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-secondary">

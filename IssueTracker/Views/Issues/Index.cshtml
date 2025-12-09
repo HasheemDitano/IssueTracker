@@ -28,12 +28,7 @@
         </p>
     </div>
     <div class="d-flex gap-2">
-        @if (User.IsInRole("Engineer") || User.IsInRole("Admin"))
-        {
-            <a href="@Url.Action("AssignedToMe", "Issues")" class="btn btn-info btn-lg">
-                <i data-lucide="user-check" class="me-2" style="width: 18px; height: 18px;"></i>My Assigned Issues
-            </a>
-        }
+        @* My Assigned Issues button removed from Engineer view *@
         @if (User.IsInRole("Customer"))
         {
             <a href="@Url.Action("Create", "Issues")" class="btn btn-success btn-lg">
@@ -224,7 +219,7 @@
                        class="form-control" />
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">
+                <button type="submit" class="btn w-100" style="background-color: #667eea; border-color: #667eea; color: white;">
                     <i data-lucide="search" class="me-1" style="width: 16px; height: 16px;"></i>Search
                 </button>
             </div>
@@ -348,40 +343,14 @@
                                     <a asp-action="Details" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-primary" title="View Details">
                                         <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
                                     </a>
-                                    <a asp-action="Edit" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-secondary" title="Edit Issue">
-                                        <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
-                                    </a>
-                                    
-                                    @* Assignment buttons for Engineers and Admins *@
-                                    @if (User.IsInRole("Engineer") || User.IsInRole("Admin"))
+                                    @if (issue.Status != "Closed")
                                     {
-                                        @if (string.IsNullOrEmpty(issue.AssignedToUserId))
-                                        {
-                                            <form asp-action="AssignToMe" method="post" style="display: inline;">
-                                                <input type="hidden" name="id" value="@issue.Id" />
-                                                <button type="submit" class="btn btn-sm btn-success" title="Assign to Me">
-                                                    <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
-                                                </button>
-                                            </form>
-                                        }
-                                        else if (issue.AssignedToUserId == User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier))
-                                        {
-                                            <form asp-action="Unassign" method="post" style="display: inline;">
-                                                <input type="hidden" name="id" value="@issue.Id" />
-                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="Unassign from Me">
-                                                    <i data-lucide="user-minus" style="width: 14px; height: 14px;"></i>
-                                                </button>
-                                            </form>
-                                        }
-                                        else if (User.IsInRole("Admin"))
-                                        {
-                                            <form asp-action="Unassign" method="post" style="display: inline;">
-                                                <input type="hidden" name="id" value="@issue.Id" />
-                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="Unassign">
-                                                    <i data-lucide="user-x" style="width: 14px; height: 14px;"></i>
-                                                </button>
-                                            </form>
-                                        }
+                                        <form asp-action="CloseIssue" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to close this issue?')">
+                                            <input type="hidden" name="id" value="@issue.Id" />
+                                            <button type="submit" class="btn btn-sm" style="background-color: #dc3545; border-color: #dc3545; color: white;" title="Close Issue">
+                                                <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i>
+                                            </button>
+                                        </form>
                                     }
                                 </div>
                             </td>

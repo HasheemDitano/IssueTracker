@@ -101,24 +101,17 @@
                                         </a></li>
                                     </ul>
                                 </li>
-                                <!-- All Issues (Admin view) -->
-                                <li class="nav-item">
-                                    <a class="nav-link"
-                                       asp-area=""
-                                       asp-controller="Issues"
-                                       asp-action="Index"
-                                       asp-route-showAll="true">
-                                        <i data-lucide="list" class="me-2" style="width: 16px; height: 16px;"></i>All Issues
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link"
-                                       asp-area=""
-                                       asp-controller="Issues"
-                                       asp-action="AssignedToMe">
-                                        <i data-lucide="user-check" class="me-2" style="width: 16px; height: 16px;"></i>Assigned to Me
-                                    </a>
-                                </li>
+                <!-- All Issues (Admin view) -->
+                <li class="nav-item">
+                    <a class="nav-link"
+                       asp-area=""
+                       asp-controller="Issues"
+                       asp-action="Index"
+                       asp-route-showAll="true">
+                        <i data-lucide="list" class="me-2" style="width: 16px; height: 16px;"></i>All Issues
+                    </a>
+                </li>
+                <!-- Assigned to Me removed for Admin users -->
                             }
                         }
                     </ul>

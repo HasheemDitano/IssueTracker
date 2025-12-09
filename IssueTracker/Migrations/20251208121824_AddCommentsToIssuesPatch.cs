@@ -10,19 +10,13 @@ namespace IssueTracker.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "AssignedToUserId",
-                table: "Issues",
-                type: "nvarchar(max)",
-                nullable: true);
+            // This migration was incorrectly generated - AssignedToUserId was already added in previous migration
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "AssignedToUserId",
-                table: "Issues");
+            // This migration was incorrectly generated - no rollback needed
         }
     }
 }

@@ -48,7 +48,7 @@ namespace IssueTracker.Migrations
 
                     b.HasIndex("IssueId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("IssueTracker.Models.Issue", b =>
@@ -87,7 +87,7 @@ namespace IssueTracker.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Issues");
+                    b.ToTable("Issues", (string)null);
                 });
 
             modelBuilder.Entity("IssueTracker.Models.Comment", b =>
