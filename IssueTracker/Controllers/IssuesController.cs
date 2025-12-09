@@ -153,11 +153,19 @@ namespace IssueTracker.Controllers
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var isEngineerOrAdmin = User.IsInRole("Engineer") || User.IsInRole("Admin");
+            var isAdmin = User.IsInRole("Admin");
 
             // Check if user can edit this issue
             if (!isEngineerOrAdmin && issue.CreatedByUserId != userId)
             {
                 return Forbid();
+            }
+
+            // Engineers can only edit status of issues assigned to themselves (except admins)
+            if (!isAdmin && User.IsInRole("Engineer") && issue.AssignedToUserId != userId)
+            {
+                TempData["ErrorMessage"] = "Engineers can only edit issues assigned to themselves. Please assign this issue to yourself first to update its status.";
+                return RedirectToAction(nameof(Details), new { id = id });
             }
 
             return View(issue);
@@ -181,6 +189,7 @@ namespace IssueTracker.Controllers
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var isEngineerOrAdmin = User.IsInRole("Engineer") || User.IsInRole("Admin");
+            var isAdmin = User.IsInRole("Admin");
 
             // Check if user can edit this issue
             if (!isEngineerOrAdmin && existingIssue.CreatedByUserId != userId)
@@ -188,17 +197,33 @@ namespace IssueTracker.Controllers
                 return Forbid();
             }
 
+            // Engineers can only edit status of issues assigned to themselves (except admins)
+            if (!isAdmin && User.IsInRole("Engineer") && existingIssue.AssignedToUserId != userId)
+            {
+                TempData["ErrorMessage"] = "Engineers can only edit issues assigned to themselves. Please assign this issue to yourself first to update its status.";
+                return RedirectToAction(nameof(Details), new { id = id });
+            }
+
             if (ModelState.IsValid)
             {
-                // Update only allowed fields
-                existingIssue.Title = issue.Title;
-                existingIssue.Description = issue.Description;
-                existingIssue.Priority = issue.Priority;
-                
-                // Only Engineers/Admins can change status
-                if (isEngineerOrAdmin)
+                // Engineers can only change status, not other fields
+                if (User.IsInRole("Engineer") && !User.IsInRole("Admin"))
                 {
+                    // Engineers can only update status of their assigned issues
                     existingIssue.Status = issue.Status;
+                }
+                else
+                {
+                    // Admins and Customers can update all fields
+                    existingIssue.Title = issue.Title;
+                    existingIssue.Description = issue.Description;
+                    existingIssue.Priority = issue.Priority;
+                    
+                    // Only Engineers/Admins can change status
+                    if (isEngineerOrAdmin)
+                    {
+                        existingIssue.Status = issue.Status;
+                    }
                 }
 
                 _context.SaveChanges();
@@ -314,6 +339,13 @@ namespace IssueTracker.Controllers
                 return NotFound();
             }
 
+            // Prevent engineers from assigning closed issues to themselves
+            if (issue.Status == "Closed")
+            {
+                TempData["ErrorMessage"] = "Cannot assign closed issues. Please reopen the issue first if work is needed.";
+                return RedirectToAction(nameof(Details), new { id = id });
+            }
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             issue.AssignedToUserId = userId;
 
@@ -344,6 +376,42 @@ namespace IssueTracker.Controllers
             issue.AssignedToUserId = null;
             _context.SaveChanges();
             TempData["SuccessMessage"] = "Issue unassigned successfully!";
+
+            return RedirectToAction(nameof(Details), new { id = id });
+        }
+
+        // POST: /Issues/UpdateStatus/5 - For engineers to update status on self-assigned issues
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Engineer,Admin")]
+        public IActionResult UpdateStatus(int id, string status)
+        {
+            var issue = _context.Issues.FirstOrDefault(i => i.Id == id);
+            if (issue == null)
+            {
+                return NotFound();
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            // Only allow engineers to update status on their assigned issues or admins on any
+            if (!isAdmin && issue.AssignedToUserId != userId)
+            {
+                return Forbid();
+            }
+
+            // Validate status
+            var validStatuses = new[] { "Open", "In Progress", "Waiting for User", "Resolved", "Closed" };
+            if (!validStatuses.Contains(status))
+            {
+                TempData["ErrorMessage"] = "Invalid status selected.";
+                return RedirectToAction(nameof(Details), new { id = id });
+            }
+
+            issue.Status = status;
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = "Issue status updated successfully!";
 
             return RedirectToAction(nameof(Details), new { id = id });
         }

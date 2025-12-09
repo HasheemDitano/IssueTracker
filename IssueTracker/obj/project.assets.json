@@ -3735,23 +3735,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\AbdulHasheemDitano\\.nuget\\packages\\": {},
+    "C:\\Users\\Hasheem Ditano\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\AbdulHasheemDitano\\source\\repos\\HasheemDitano\\IssueTracker\\IssueTracker\\IssueTracker.csproj",
+      "projectUniqueName": "C:\\Users\\Hasheem Ditano\\source\\repos\\IssueTracker\\IssueTracker\\IssueTracker.csproj",
       "projectName": "IssueTracker",
-      "projectPath": "C:\\Users\\AbdulHasheemDitano\\source\\repos\\HasheemDitano\\IssueTracker\\IssueTracker\\IssueTracker.csproj",
-      "packagesPath": "C:\\Users\\AbdulHasheemDitano\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\AbdulHasheemDitano\\source\\repos\\HasheemDitano\\IssueTracker\\IssueTracker\\obj\\",
+      "projectPath": "C:\\Users\\Hasheem Ditano\\source\\repos\\IssueTracker\\IssueTracker\\IssueTracker.csproj",
+      "packagesPath": "C:\\Users\\Hasheem Ditano\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Hasheem Ditano\\source\\repos\\IssueTracker\\IssueTracker\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\AbdulHasheemDitano\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Hasheem Ditano\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],

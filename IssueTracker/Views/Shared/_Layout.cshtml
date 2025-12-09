@@ -1,4 +1,69 @@
-﻿<!DOCTYPE html>
+﻿@{
+    string GetActiveClass(string controller, string action = null, string[] additionalControllers = null)
+    {
+        var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+        var showAll = ViewContext.HttpContext.Request.Query["showAll"].ToString();
+        
+        if (currentController?.Equals(controller, StringComparison.OrdinalIgnoreCase) == true)
+        {
+            if (action == null || currentAction?.Equals(action, StringComparison.OrdinalIgnoreCase) == true)
+            {
+                // Handle special cases
+                if (controller == "Issues" && action == "Index")
+                {
+                    // For Issues Index, check the showAll parameter to distinguish between "My Issues" and "All Issues"
+                    var isShowingAll = showAll.Equals("true", StringComparison.OrdinalIgnoreCase);
+                    return isShowingAll ? "" : "active"; // Return active only for "My Issues" (showAll=false or not set)
+                }
+                else if (controller == "Issues" && action == "AssignedToMe")
+                {
+                    return "active";
+                }
+                else if (controller == "Issues" && action == "Create")
+                {
+                    return "active";
+                }
+                else
+                {
+                    return "active";
+                }
+            }
+        }
+        
+        // Handle additional controllers (for grouped navigation)
+        if (additionalControllers != null)
+        {
+            foreach (var additionalController in additionalControllers)
+            {
+                if (currentController?.Equals(additionalController, StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    return "active";
+                }
+            }
+        }
+        
+        return "";
+    }
+    
+    string GetActiveClassForAllIssues()
+    {
+        var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+        var showAll = ViewContext.HttpContext.Request.Query["showAll"].ToString();
+        
+        if (currentController?.Equals("Issues", StringComparison.OrdinalIgnoreCase) == true && 
+            currentAction?.Equals("Index", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            var isShowingAll = showAll.Equals("true", StringComparison.OrdinalIgnoreCase);
+            return isShowingAll ? "active" : "";
+        }
+        
+        return "";
+    }
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -36,7 +101,7 @@
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                <a class="nav-link @GetActiveClass("Home", "Index")" asp-area="" asp-controller="Home" asp-action="Index">
                                     <i data-lucide="layout-dashboard" class="me-2" style="width: 16px; height: 16px;"></i>Dashboard
                                 </a>
                             </li>
@@ -46,7 +111,7 @@
                             {
                                 <!-- My Issues (only for customers) -->
                                 <li class="nav-item">
-                                    <a class="nav-link"
+                                    <a class="nav-link @GetActiveClass("Issues", "Index")"
                                        asp-area=""
                                        asp-controller="Issues"
                                        asp-action="Index"
@@ -56,7 +121,7 @@
                                 </li>
                                 <!-- Create Issue (only for customers) -->
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Issues" asp-action="Create">
+                                    <a class="nav-link @GetActiveClass("Issues", "Create")" asp-controller="Issues" asp-action="Create">
                                         <i data-lucide="plus" class="me-2" style="width: 16px; height: 16px;"></i>Create Issue
                                     </a>
                                 </li>
@@ -67,7 +132,7 @@
                             {
                                 <!-- All Issues (Engineer only) -->
                                 <li class="nav-item">
-                                    <a class="nav-link"
+                                    <a class="nav-link @GetActiveClassForAllIssues()"
                                        asp-area=""
                                        asp-controller="Issues"
                                        asp-action="Index"
@@ -76,7 +141,7 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link"
+                                    <a class="nav-link @GetActiveClass("Issues", "AssignedToMe")"
                                        asp-area=""
                                        asp-controller="Issues"
                                        asp-action="AssignedToMe">
@@ -89,7 +154,7 @@
                             @if (User.IsInRole("Admin"))
                             {
                                 <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <a class="nav-link dropdown-toggle @GetActiveClass("Admin", null, new[] { "Admin" })" href="#" role="button" data-bs-toggle="dropdown">
                                         <i data-lucide="shield" class="me-2" style="width: 16px; height: 16px;"></i>Admin
                                     </a>
                                     <ul class="dropdown-menu">
@@ -103,7 +168,7 @@
                                 </li>
                 <!-- All Issues (Admin view) -->
                 <li class="nav-item">
-                    <a class="nav-link"
+                    <a class="nav-link @GetActiveClassForAllIssues()"
                        asp-area=""
                        asp-controller="Issues"
                        asp-action="Index"

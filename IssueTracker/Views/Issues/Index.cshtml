@@ -47,9 +47,9 @@
     var closedCount = Model.Count(i => i.Status == "Closed");
     var resolvedClosed = resolvedCount + closedCount;
 
-    int high = Model.Count(i => i.Priority == 1);
-    int normal = Model.Count(i => i.Priority == 3);
-    int low = Model.Count(i => i.Priority >= 4);
+    int high = Model.Count(i => i.Priority <= 2);  // Critical (1) and High (2)
+    int normal = Model.Count(i => i.Priority == 3);  // Normal (3)
+    int low = Model.Count(i => i.Priority >= 4);     // Low (4) and Lowest (5)
 
     var recentIssues = Model
         .OrderByDescending(i => i.CreatedAt)
@@ -146,9 +146,9 @@
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="fw-semibold d-flex align-items-center" style="color: var(--danger-600);">
-                            <i data-lucide="alert-circle" class="me-2" style="width: 16px; height: 16px;"></i>High Priority
+                            <i data-lucide="alert-circle" class="me-2" style="width: 16px; height: 16px;"></i>Critical & High Priority
                         </span>
-                        <span class="badge bg-danger">@high</span>
+                        <span class="badge bg-danger">@high (P1-2)</span>
                     </div>
                     <div class="progress mb-3" style="height: 10px;">
                         <div class="progress-bar bg-danger" role="progressbar"
@@ -161,7 +161,7 @@
                         <span class="fw-semibold d-flex align-items-center" style="color: var(--warning-600);">
                             <i data-lucide="minus-circle" class="me-2" style="width: 16px; height: 16px;"></i>Normal Priority
                         </span>
-                        <span class="badge bg-warning">@normal</span>
+                        <span class="badge bg-warning">@normal (P3)</span>
                     </div>
                     <div class="progress mb-3" style="height: 10px;">
                         <div class="progress-bar bg-warning" role="progressbar"
@@ -172,9 +172,9 @@
                 <div class="mb-2">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="fw-semibold d-flex align-items-center" style="color: var(--success-600);">
-                            <i data-lucide="check-circle" class="me-2" style="width: 16px; height: 16px;"></i>Low Priority
+                            <i data-lucide="check-circle" class="me-2" style="width: 16px; height: 16px;"></i>Low & Lowest Priority
                         </span>
-                        <span class="badge bg-success">@low</span>
+                        <span class="badge bg-success">@low (P4-5)</span>
                     </div>
                     <div class="progress" style="height: 10px;">
                         <div class="progress-bar bg-success" role="progressbar"
@@ -303,14 +303,18 @@
                                         1 => "bg-danger",
                                         2 => "bg-warning",
                                         3 => "bg-info",
-                                        _ => "bg-success"
+                                        4 => "bg-success",
+                                        5 => "bg-success",
+                                        _ => "bg-secondary"
                                     };
                                     var priorityText = issue.Priority switch
                                     {
-                                        1 => "High",
-                                        2 => "Medium",
+                                        1 => "Critical",
+                                        2 => "High",
                                         3 => "Normal",
-                                        _ => "Low"
+                                        4 => "Low",
+                                        5 => "Lowest",
+                                        _ => "Unknown"
                                     };
                                 }
                                 <span class="badge @priorityClass">
@@ -356,21 +360,53 @@
                                     @if (User.IsInRole("Engineer") || User.IsInRole("Admin"))
                                     {
                                         @* Edit button for engineers *@
-                                        <a asp-action="Edit" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-secondary" title="Edit Issue & Status">
-                                            <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
-                                        </a>
+                                        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                                        
+                                        @* Engineers can only edit status of issues assigned to them, Admins can edit any *@
+                                        var canEditIssue = User.IsInRole("Admin") || (User.IsInRole("Engineer") && issue.AssignedToUserId == currentUserId);
+                                        
+                                        @if (canEditIssue)
+                                        {
+                                            @if (User.IsInRole("Engineer") && !User.IsInRole("Admin"))
+                                            {
+                                                <a asp-action="Edit" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-secondary" title="Update Status (Self-Assigned Only)">
+                                                    <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a asp-action="Edit" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-secondary" title="Edit Issue & Status">
+                                                    <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
+                                                </a>
+                                            }
+                                        }
+                                        else if (User.IsInRole("Engineer"))
+                                        {
+                                            <button class="btn btn-sm btn-outline-secondary" disabled title="Assign issue to yourself first to edit status">
+                                                <i data-lucide="edit-off" style="width: 14px; height: 14px;"></i>
+                                            </button>
+                                        }
                                         
                                         @* Assignment button *@
                                         @if (string.IsNullOrEmpty(issue.AssignedToUserId))
                                         {
-                                            <form asp-action="AssignToMe" method="post" style="display: inline;">
-                                                <input type="hidden" name="id" value="@issue.Id" />
-                                                <button type="submit" class="btn btn-sm btn-outline-info" title="Assign to Me">
-                                                    <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+                                            @if (issue.Status == "Closed")
+                                            {
+                                                <button class="btn btn-sm btn-outline-secondary" disabled title="Cannot assign closed issues">
+                                                    <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i>
                                                 </button>
-                                            </form>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="AssignToMe" method="post" style="display: inline;">
+                                                    <input type="hidden" name="id" value="@issue.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-info" title="Assign to Me">
+                                                        <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+                                                    </button>
+                                                </form>
+                                            }
                                         }
-                                        else if (issue.AssignedToUserId == User.FindFirstValue(ClaimTypes.NameIdentifier))
+                                        else if (issue.AssignedToUserId == currentUserId)
                                         {
                                             <form asp-action="Unassign" method="post" style="display: inline;">
                                                 <input type="hidden" name="id" value="@issue.Id" />
