@@ -40,6 +40,34 @@
     .info-card:hover {
         transform: translateY(-2px);
     }
+    
+    /* Simple button styles */
+    .btn-sm:hover {
+        opacity: 0.9;
+    }
+    
+    /* Role dropdown styles */
+    .form-select-sm {
+        font-size: 0.875rem;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .form-select-sm:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+    
+    .form-select-sm:hover {
+        border-color: #9ca3af;
+    }
+    
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
 </style>
 
 <div class="d-flex justify-content-between align-items-start mb-5 fade-in-up">
@@ -71,22 +99,12 @@
         </th>
         <th>
             <div class="d-flex align-items-center">
-                <i data-lucide="user-check" class="me-2" style="width: 14px; height: 14px;"></i>Current Roles
+                <i data-lucide="user-check" class="me-2" style="width: 14px; height: 14px;"></i>Current Role
             </div>
         </th>
         <th>
             <div class="d-flex align-items-center">
-                <i data-lucide="user" class="me-2" style="width: 14px; height: 14px;"></i>Customer Role
-            </div>
-        </th>
-        <th>
-            <div class="d-flex align-items-center">
-                <i data-lucide="wrench" class="me-2" style="width: 14px; height: 14px;"></i>Engineer Role
-            </div>
-        </th>
-        <th>
-            <div class="d-flex align-items-center">
-                <i data-lucide="crown" class="me-2" style="width: 14px; height: 14px;"></i>Admin Role
+                <i data-lucide="settings" class="me-2" style="width: 14px; height: 14px;"></i>Assign Role
             </div>
         </th>
         <th>
@@ -112,87 +130,48 @@
                     </div>
                 </td>
                 <td>
-                    @if (item.Roles.Any())
+                    @{
+                        var userRole = item.Roles.FirstOrDefault();
+                    }
+                    @if (!string.IsNullOrEmpty(userRole))
                     {
-                        @foreach (var role in item.Roles)
+                        var roleClass = userRole switch
                         {
-                            var roleClass = role switch
-                            {
-                                "Admin" => "bg-danger",
-                                "Engineer" => "bg-warning",
-                                "Customer" => "bg-info",
-                                _ => "bg-secondary"
-                            };
-                            <span class="role-badge @roleClass me-1 mb-1">
-                                <i data-lucide="user-check" class="me-1" style="width: 12px; height: 12px;"></i>@role
-                            </span>
-                        }
+                            "Admin" => "bg-danger text-white",
+                            "Engineer" => "bg-warning text-dark",
+                            "Customer" => "bg-info text-white",
+                            _ => "bg-secondary text-white"
+                        };
+                        <span class="role-badge @roleClass">
+                            <i data-lucide="user-check" class="me-1" style="width: 12px; height: 12px;"></i>@userRole
+                        </span>
                     }
                     else
                     {
-                        <span class="text-muted">No roles assigned</span>
+                        <span class="text-muted">No role assigned</span>
                     }
                 </td>
                 <td>
-                    <div class="btn-group" role="group">
-                        <form asp-action="AddRole" method="post" style="display:inline">
-                            <input type="hidden" name="userId" value="@item.User.Id" />
-                            <input type="hidden" name="role" value="Customer" />
-                            <button type="submit" class="btn btn-sm btn-outline-success" title="Add Customer Role">
-                                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
-                            </button>
-                        </form>
-                        <form asp-action="RemoveRole" method="post" style="display:inline">
-                            <input type="hidden" name="userId" value="@item.User.Id" />
-                            <input type="hidden" name="role" value="Customer" />
-                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove Customer Role">
-                                <i data-lucide="minus" style="width: 14px; height: 14px;"></i>
-                            </button>
-                        </form>
-                    </div>
-                </td>
-                <td>
-                    <div class="btn-group" role="group">
-                        <form asp-action="AddRole" method="post" style="display:inline">
-                            <input type="hidden" name="userId" value="@item.User.Id" />
-                            <input type="hidden" name="role" value="Engineer" />
-                            <button type="submit" class="btn btn-sm btn-outline-success" title="Add Engineer Role">
-                                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
-                            </button>
-                        </form>
-                        <form asp-action="RemoveRole" method="post" style="display:inline">
-                            <input type="hidden" name="userId" value="@item.User.Id" />
-                            <input type="hidden" name="role" value="Engineer" />
-                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove Engineer Role">
-                                <i data-lucide="minus" style="width: 14px; height: 14px;"></i>
-                            </button>
-                        </form>
-                    </div>
-                </td>
-                <td>
-                    <div class="btn-group" role="group">
-                        <form asp-action="AddRole" method="post" style="display:inline">
-                            <input type="hidden" name="userId" value="@item.User.Id" />
-                            <input type="hidden" name="role" value="Admin" />
-                            <button type="submit" class="btn btn-sm btn-outline-success" title="Add Admin Role">
-                                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
-                            </button>
-                        </form>
-                        <form asp-action="RemoveRole" method="post" style="display:inline">
-                            <input type="hidden" name="userId" value="@item.User.Id" />
-                            <input type="hidden" name="role" value="Admin" />
-                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove Admin Role">
-                                <i data-lucide="minus" style="width: 14px; height: 14px;"></i>
-                            </button>
-                        </form>
-                    </div>
+                    @{
+                        var currentUserRole = item.Roles.FirstOrDefault() ?? "";
+                    }
+                    <form asp-action="SetRole" method="post" style="display: inline-block;">
+                        <input type="hidden" name="userId" value="@item.User.Id" />
+                        <div class="d-flex align-items-center gap-2">
+                            <select name="role" class="form-select form-select-sm" style="width: 140px;" onchange="this.form.submit()">
+                                <option value="" selected="@(string.IsNullOrEmpty(currentUserRole))">No Role</option>
+                                <option value="Customer" selected="@(currentUserRole == "Customer")">Customer</option>
+                                <option value="Engineer" selected="@(currentUserRole == "Engineer")">Engineer</option>
+                                <option value="Admin" selected="@(currentUserRole == "Admin")">Admin</option>
+                            </select>
+                        </div>
+                    </form>
                 </td>
                 <td>
                     <form asp-action="DeleteUser" method="post" style="display:inline" 
                           onsubmit="return confirm('Are you sure you want to delete user @item.User.Email? This action cannot be undone.')">
                         <input type="hidden" name="userId" value="@item.User.Id" />
-                        <button type="submit" class="btn btn-sm" style="background-color: #dc3545; border-color: #dc3545; color: white;" 
-                                title="Delete User">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Delete User">
                             <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                         </button>
                     </form>
@@ -233,3 +212,29 @@
     
     <!-- Quick Actions section removed -->
 </div>
+
+<script>
+// Add loading state to role dropdowns
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelects = document.querySelectorAll('select[name="role"]');
+    
+    roleSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            // Show loading state
+            this.disabled = true;
+            this.style.opacity = '0.6';
+            
+            // Create a loading indicator
+            const loadingSpinner = document.createElement('span');
+            loadingSpinner.innerHTML = '<i data-lucide="loader" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i>';
+            loadingSpinner.style.marginLeft = '8px';
+            this.parentNode.appendChild(loadingSpinner);
+            
+            // Initialize Lucide icons for the spinner
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    });
+});
+</script>

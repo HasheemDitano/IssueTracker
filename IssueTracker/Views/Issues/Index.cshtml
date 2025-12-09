@@ -260,7 +260,7 @@
                                 <i data-lucide="calendar" class="me-2" style="width: 14px; height: 14px;"></i>Created
                             </div>
                         </th>
-                        <th style="width: 200px;">
+                        <th style="width: 250px;">
                             <div class="d-flex align-items-center">
                                 <i data-lucide="settings" class="me-2" style="width: 14px; height: 14px;"></i>Actions
                             </div>
@@ -343,6 +343,45 @@
                                     <a asp-action="Details" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-primary" title="View Details">
                                         <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
                                     </a>
+                                    
+                                    @* Customer Edit button *@
+                                    @if (User.IsInRole("Customer") && issue.CreatedByUserId == User.FindFirstValue(ClaimTypes.NameIdentifier))
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-success" title="Edit Issue">
+                                            <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
+                                        </a>
+                                    }
+                                    
+                                    @* Engineer Actions *@
+                                    @if (User.IsInRole("Engineer") || User.IsInRole("Admin"))
+                                    {
+                                        @* Edit button for engineers *@
+                                        <a asp-action="Edit" asp-route-id="@issue.Id" class="btn btn-sm btn-outline-secondary" title="Edit Issue & Status">
+                                            <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
+                                        </a>
+                                        
+                                        @* Assignment button *@
+                                        @if (string.IsNullOrEmpty(issue.AssignedToUserId))
+                                        {
+                                            <form asp-action="AssignToMe" method="post" style="display: inline;">
+                                                <input type="hidden" name="id" value="@issue.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-info" title="Assign to Me">
+                                                    <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        else if (issue.AssignedToUserId == User.FindFirstValue(ClaimTypes.NameIdentifier))
+                                        {
+                                            <form asp-action="Unassign" method="post" style="display: inline;">
+                                                <input type="hidden" name="id" value="@issue.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="Unassign from Me">
+                                                    <i data-lucide="user-minus" style="width: 14px; height: 14px;"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    }
+                                    
+                                    @* Close Issue button *@
                                     @if (issue.Status != "Closed")
                                     {
                                         <form asp-action="CloseIssue" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to close this issue?')">

@@ -131,9 +131,9 @@ namespace IssueTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetRole(string userId, string role)
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(role))
+            if (string.IsNullOrEmpty(userId))
             {
-                TempData["ErrorMessage"] = "Invalid user or role.";
+                TempData["ErrorMessage"] = "Invalid user ID.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -149,6 +149,13 @@ namespace IssueTracker.Controllers
             // Remove user from all known roles
             var currentRoles = await _userManager.GetRolesAsync(user);
             await _userManager.RemoveFromRolesAsync(user, currentRoles.Intersect(allRoles));
+
+            // If no role selected (empty string), just remove all roles
+            if (string.IsNullOrEmpty(role))
+            {
+                TempData["SuccessMessage"] = $"Successfully removed all roles from {user.Email}.";
+                return RedirectToAction(nameof(Index));
+            }
 
             // Add to selected role
             if (allRoles.Contains(role))
@@ -168,6 +175,10 @@ namespace IssueTracker.Controllers
                 {
                     TempData["ErrorMessage"] = "Failed to set user role.";
                 }
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Invalid role selected.";
             }
 
             return RedirectToAction(nameof(Index));
@@ -264,6 +275,46 @@ namespace IssueTracker.Controllers
             TempData["SuccessMessage"] = $"Successfully updated status of {issues.Count} issues to {newStatus}.";
 
             return RedirectToAction(nameof(Issues));
+        }
+
+        // POST: /Admin/ResetUserPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetUserPassword(string userId, string newPassword)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(newPassword))
+            {
+                TempData["ErrorMessage"] = "Invalid user ID or password.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (newPassword.Length < 6)
+            {
+                TempData["ErrorMessage"] = "Password must be at least 6 characters long.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Generate password reset token and reset password
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, resetToken, newPassword);
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = $"Successfully reset password for {user.Email}.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Failed to reset password. " + string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // POST: /Admin/DeleteUser

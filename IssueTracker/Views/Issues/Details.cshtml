@@ -5,6 +5,7 @@
     var comments = ViewBag.Comments as List<IssueTracker.Models.Comment> ?? new List<IssueTracker.Models.Comment>();
     var canEdit = ViewBag.CanEdit as bool? ?? false;
     var isEngineerOrAdmin = User.IsInRole("Engineer") || User.IsInRole("Admin");
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
 <div class="d-flex justify-content-between align-items-start mb-5 fade-in-up">
@@ -90,11 +91,79 @@
             </div>
         </div>
 
-        @* Assignment Actions removed *@
+        @* Engineer Assignment Actions *@
+        @if (isEngineerOrAdmin)
+        {
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="card" style="border-left: 4px solid #667eea;">
+                        <div class="card-header" style="background-color: #f8f9ff;">
+                            <h5 class="mb-0 d-flex align-items-center">
+                                <i data-lucide="settings" class="me-2" style="width: 18px; height: 18px;"></i>
+                                Engineer Actions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <!-- Assignment Section -->
+                                <div class="col-md-6">
+                                    <h6 class="fw-semibold mb-2">
+                                        <i data-lucide="user-plus" class="me-2" style="width: 16px; height: 16px;"></i>Assignment
+                                    </h6>
+                                    @if (string.IsNullOrEmpty(Model.AssignedToUserId))
+                                    {
+                                        <form asp-action="AssignToMe" method="post" style="display: inline;">
+                                            <input type="hidden" name="id" value="@Model.Id" />
+                                            <button type="submit" class="btn btn-success btn-sm w-100">
+                                                <i data-lucide="user-check" class="me-2" style="width: 14px; height: 14px;"></i>
+                                                Assign to Me
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (Model.AssignedToUserId == userId)
+                                    {
+                                        <div class="mb-2">
+                                            <span class="badge bg-info w-100 py-2">
+                                                <i data-lucide="user" class="me-1" style="width: 12px; height: 12px;"></i>
+                                                Assigned to You
+                                            </span>
+                                        </div>
+                                        <form asp-action="Unassign" method="post">
+                                            <input type="hidden" name="id" value="@Model.Id" />
+                                            <button type="submit" class="btn btn-outline-warning btn-sm w-100">
+                                                <i data-lucide="user-minus" class="me-2" style="width: 14px; height: 14px;"></i>
+                                                Unassign
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary w-100 py-2">
+                                            <i data-lucide="users" class="me-1" style="width: 12px; height: 12px;"></i>
+                                            Assigned to Another Engineer
+                                        </span>
+                                    }
+                                </div>
+
+                                <!-- Edit Section -->
+                                <div class="col-md-6">
+                                    <h6 class="fw-semibold mb-2">
+                                        <i data-lucide="edit" class="me-2" style="width: 16px; height: 16px;"></i>Modify Issue
+                                    </h6>
+                                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm w-100">
+                                        <i data-lucide="edit-2" class="me-2" style="width: 14px; height: 14px;"></i>
+                                        Edit Details & Status
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
 
         @* Customer Close Issue Action *@
         @{
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var isCreator = Model.CreatedByUserId == userId;
             var canClose = (isCreator && (Model.Status == "Resolved" || Model.Status == "Waiting for User")) || isEngineerOrAdmin;
         }
