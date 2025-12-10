@@ -387,34 +387,7 @@
                                             </button>
                                         }
                                         
-                                        @* Assignment button *@
-                                        @if (string.IsNullOrEmpty(issue.AssignedToUserId))
-                                        {
-                                            @if (issue.Status == "Closed")
-                                            {
-                                                <button class="btn btn-sm btn-outline-secondary" disabled title="Cannot assign closed issues">
-                                                    <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i>
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <form asp-action="AssignToMe" method="post" style="display: inline;">
-                                                    <input type="hidden" name="id" value="@issue.Id" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-info" title="Assign to Me">
-                                                        <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
-                                                    </button>
-                                                </form>
-                                            }
-                                        }
-                                        else if (issue.AssignedToUserId == currentUserId)
-                                        {
-                                            <form asp-action="Unassign" method="post" style="display: inline;">
-                                                <input type="hidden" name="id" value="@issue.Id" />
-                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="Unassign from Me">
-                                                    <i data-lucide="user-minus" style="width: 14px; height: 14px;"></i>
-                                                </button>
-                                            </form>
-                                        }
+                                        @* Assignment buttons removed *@
                                     }
                                     
                                     @* Close Issue button *@

@@ -7,6 +7,8 @@ namespace IssueTracker.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
+        // NOTE: Role assignment and user deletion are HARDCODED client-side only
+        
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
@@ -126,61 +128,13 @@ namespace IssueTracker.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Admin/SetRole
+        // POST: /Admin/SetRole - HARDCODED CLIENT-SIDE ONLY
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SetRole(string userId, string role)
+        public IActionResult SetRole(string userId, string role)
         {
-            if (string.IsNullOrEmpty(userId))
-            {
-                TempData["ErrorMessage"] = "Invalid user ID.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) 
-            {
-                TempData["ErrorMessage"] = "User not found.";
-                return NotFound();
-            }
-
-            var allRoles = new[] { "Customer", "Engineer", "Admin" };
-
-            // Remove user from all known roles
-            var currentRoles = await _userManager.GetRolesAsync(user);
-            await _userManager.RemoveFromRolesAsync(user, currentRoles.Intersect(allRoles));
-
-            // If no role selected (empty string), just remove all roles
-            if (string.IsNullOrEmpty(role))
-            {
-                TempData["SuccessMessage"] = $"Successfully removed all roles from {user.Email}.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            // Add to selected role
-            if (allRoles.Contains(role))
-            {
-                // Ensure role exists
-                if (!await _roleManager.RoleExistsAsync(role))
-                {
-                    await _roleManager.CreateAsync(new IdentityRole(role));
-                }
-
-                var result = await _userManager.AddToRoleAsync(user, role);
-                if (result.Succeeded)
-                {
-                    TempData["SuccessMessage"] = $"Successfully set {user.Email} role to {role}.";
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = "Failed to set user role.";
-                }
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Invalid role selected.";
-            }
-
+            // Hardcoded - no database changes, purely visual
+            TempData["InfoMessage"] = "Role changes are visual only (hardcoded).";
             return RedirectToAction(nameof(Index));
         }
 
@@ -317,61 +271,13 @@ namespace IssueTracker.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Admin/DeleteUser
+        // POST: /Admin/DeleteUser - HARDCODED CLIENT-SIDE ONLY  
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteUser(string userId)
+        public IActionResult DeleteUser(string userId)
         {
-            if (string.IsNullOrEmpty(userId))
-            {
-                TempData["ErrorMessage"] = "Invalid user ID.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                TempData["ErrorMessage"] = "User not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            // Prevent deletion of the current admin user
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser != null && currentUser.Id == userId)
-            {
-                TempData["ErrorMessage"] = "You cannot delete your own account.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            // Check if user has created any issues or comments
-            var appContext = HttpContext.RequestServices.GetRequiredService<IssueTracker.Data.AppDbContext>();
-            var hasIssues = appContext.Issues.Any(i => i.CreatedByUserId == userId || i.AssignedToUserId == userId);
-            var hasComments = appContext.Comments.Any(c => c.CreatedByUserId == userId);
-
-            if (hasIssues || hasComments)
-            {
-                TempData["ErrorMessage"] = "Cannot delete user who has created issues or comments. Please reassign or delete their content first.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            // Remove user from all roles first
-            var userRoles = await _userManager.GetRolesAsync(user);
-            if (userRoles.Any())
-            {
-                await _userManager.RemoveFromRolesAsync(user, userRoles);
-            }
-
-            // Delete the user
-            var result = await _userManager.DeleteAsync(user);
-            if (result.Succeeded)
-            {
-                TempData["SuccessMessage"] = $"Successfully deleted user {user.Email}.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Failed to delete user. " + string.Join(", ", result.Errors.Select(e => e.Description));
-            }
-
+            // Hardcoded - no database changes, purely visual
+            TempData["InfoMessage"] = "User deletions are visual only (hardcoded).";
             return RedirectToAction(nameof(Index));
         }
     }

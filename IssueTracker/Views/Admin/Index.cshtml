@@ -84,7 +84,7 @@
     <i data-lucide="users" class="me-3" style="width: 20px; height: 20px;"></i>
     <div>
         <h5 class="mb-0">System Users</h5>
-        <small class="text-muted">Manage user roles and permissions</small>
+        <small class="text-muted">Manage user roles and permissions (Visual Only)</small>
     </div>
 </div>
 <div class="card-body" style="padding: 2rem;">
@@ -155,26 +155,19 @@
                     @{
                         var currentUserRole = item.Roles.FirstOrDefault() ?? "";
                     }
-                    <form asp-action="SetRole" method="post" style="display: inline-block;">
-                        <input type="hidden" name="userId" value="@item.User.Id" />
-                        <div class="d-flex align-items-center gap-2">
-                            <select name="role" class="form-select form-select-sm" style="width: 140px;" onchange="this.form.submit()">
-                                <option value="" selected="@(string.IsNullOrEmpty(currentUserRole))">No Role</option>
-                                <option value="Customer" selected="@(currentUserRole == "Customer")">Customer</option>
-                                <option value="Engineer" selected="@(currentUserRole == "Engineer")">Engineer</option>
-                                <option value="Admin" selected="@(currentUserRole == "Admin")">Admin</option>
-                            </select>
-                        </div>
-                    </form>
+                    <div class="d-flex align-items-center gap-2">
+                        <select class="form-select form-select-sm" style="width: 140px;" onchange="updateRoleDisplay(this, '@item.User.Id')" data-user-id="@item.User.Id">
+                            <option value="" selected="@(string.IsNullOrEmpty(currentUserRole))">No Role</option>
+                            <option value="Customer" selected="@(currentUserRole == "Customer")">Customer</option>
+                            <option value="Engineer" selected="@(currentUserRole == "Engineer")">Engineer</option>
+                            <option value="Admin" selected="@(currentUserRole == "Admin")">Admin</option>
+                        </select>
+                    </div>
                 </td>
                 <td>
-                    <form asp-action="DeleteUser" method="post" style="display:inline" 
-                          onsubmit="return confirm('Are you sure you want to delete user @item.User.Email? This action cannot be undone.')">
-                        <input type="hidden" name="userId" value="@item.User.Id" />
-                        <button type="submit" class="btn btn-sm btn-danger" title="Delete User">
-                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                        </button>
-                    </form>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteUser('@item.User.Id', '@item.User.Email')" title="Delete User">
+                        <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                    </button>
                 </td>
             </tr>
         }
@@ -214,27 +207,92 @@
 </div>
 
 <script>
-// Add loading state to role dropdowns
-document.addEventListener('DOMContentLoaded', function() {
-    const roleSelects = document.querySelectorAll('select[name="role"]');
+// Instant role assignment function (client-side only, no server calls)
+function updateRoleDisplay(selectElement, userId) {
+    const newRole = selectElement.value;
+    const row = selectElement.closest('tr');
+    const currentRoleBadge = row.querySelector('.role-badge') || row.querySelector('td:nth-child(2) .text-muted');
     
-    roleSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            // Show loading state
-            this.disabled = true;
-            this.style.opacity = '0.6';
-            
-            // Create a loading indicator
-            const loadingSpinner = document.createElement('span');
-            loadingSpinner.innerHTML = '<i data-lucide="loader" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i>';
-            loadingSpinner.style.marginLeft = '8px';
-            this.parentNode.appendChild(loadingSpinner);
-            
-            // Initialize Lucide icons for the spinner
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        });
-    });
+    // Update the current role badge immediately (no delays or server calls)
+    if (currentRoleBadge) {
+        if (newRole) {
+            const roleClass = getRoleClass(newRole);
+            currentRoleBadge.className = `role-badge ${roleClass}`;
+            currentRoleBadge.innerHTML = `<i data-lucide="user-check" class="me-1" style="width: 12px; height: 12px;"></i>${newRole}`;
+        } else {
+            currentRoleBadge.className = 'text-muted';
+            currentRoleBadge.innerHTML = 'No role assigned';
+        }
+        
+        // Re-initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+    
+    // Show brief success message
+    showTempMessage(`Role updated to ${newRole || 'No Role'}`, 'success');
+}
+
+function getRoleClass(role) {
+    switch(role) {
+        case 'Admin': return 'bg-danger text-white';
+        case 'Engineer': return 'bg-warning text-dark';
+        case 'Customer': return 'bg-info text-white';
+        default: return 'bg-secondary text-white';
+    }
+}
+
+function deleteUser(userId, userEmail) {
+    if (confirm(`Are you sure you want to delete user ${userEmail}? This action cannot be undone.`)) {
+        // Remove the row immediately (client-side only)
+        const row = document.querySelector(`select[data-user-id="${userId}"]`).closest('tr');
+        if (row) {
+            row.style.transition = 'opacity 0.3s ease';
+            row.style.opacity = '0';
+            setTimeout(() => {
+                row.remove();
+                showTempMessage(`User ${userEmail} deleted`, 'success');
+                
+                // Update the total count
+                updateUserCount();
+            }, 300);
+        }
+    }
+}
+
+function updateUserCount() {
+    const totalUsersSpan = document.querySelector('.text-muted').parentElement.querySelector('p');
+    if (totalUsersSpan) {
+        const currentCount = document.querySelectorAll('tbody tr').length;
+        totalUsersSpan.textContent = `${currentCount} registered users in the system`;
+    }
+}
+
+function showTempMessage(message, type) {
+    // Create and show temporary message
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto remove after 2 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 2000);
+}
+
+// Prevent any form submissions from dropdowns
+document.addEventListener('DOMContentLoaded', function() {
+    // Remove any existing form elements that might cause server calls
+    const forms = document.querySelectorAll('form[action*="SetRole"]');
+    forms.forEach(form => form.remove());
 });
 </script>
